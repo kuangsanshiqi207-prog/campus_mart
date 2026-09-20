@@ -18,3 +18,14 @@ mybatis:
 logging:
   level:
     com.example: debug
+
+# application.yml
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
