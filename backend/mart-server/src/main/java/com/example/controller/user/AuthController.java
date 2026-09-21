@@ -1,11 +1,11 @@
-package com.example.controller;
+package com.example.controller.user;
 
 import com.example.dto.user.LoginDTO;
 import com.example.dto.user.RegisterDTO;
 import com.example.dto.user.ResetPasswordDTO;
 import com.example.dto.user.SendCodeDTO;
 import com.example.result.Result;
-import com.example.service.UserService;
+import com.example.service.user.UserService;
 import com.example.vo.user.LoginVO;
 import com.example.vo.user.UserVO;
 import io.swagger.v3.oas.annotations.Operation;

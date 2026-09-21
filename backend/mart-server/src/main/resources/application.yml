@@ -34,6 +34,9 @@ campus:
     user-secret-key: ${jwt.user-secret-key}
     user-ttl: ${jwt.user-ttl}
     user-token-name: ${jwt.user-token-name}
+  sms:
+    code-length: ${sms.code-length}
+    expire-minutes: ${sms.expire-minutes}
 
 # ==================== MyBatis ====================
 mybatis:

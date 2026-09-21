@@ -33,6 +33,10 @@ jwt:
   user-ttl: 604800000
   user-token-name: Authorization
 
+sms:
+  code-length: 6
+  expire-minutes: 5
+
 # ==================== MyBatis ====================
 mybatis:
   map-underscore-to-camel-case: true

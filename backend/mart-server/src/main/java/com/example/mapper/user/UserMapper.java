@@ -1,4 +1,4 @@
-package com.example.mapper;
+package com.example.mapper.user;
 
 import com.example.entity.User;
 import org.apache.ibatis.annotations.*;

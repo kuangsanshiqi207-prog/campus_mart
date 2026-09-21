@@ -1,9 +1,10 @@
-package com.example.service.impl;
+package com.example.service.impl.user;
 
 import cn.hutool.core.util.RandomUtil;
 import com.example.constant.JwtClaimsConstant;
 import com.example.constant.MessageConstant;
 import com.example.constant.RedisKeyConstant;
+import com.example.constant.UserConstant;
 import com.example.context.BaseContext;
 import com.example.dto.user.LoginDTO;
 import com.example.dto.user.RegisterDTO;
@@ -11,9 +12,10 @@ import com.example.dto.user.ResetPasswordDTO;
 import com.example.dto.user.SendCodeDTO;
 import com.example.entity.User;
 import com.example.exception.BaseException;
-import com.example.mapper.UserMapper;
+import com.example.mapper.user.UserMapper;
 import com.example.properties.JwtProperties;
-import com.example.service.UserService;
+import com.example.properties.SmsProperties;
+import com.example.service.user.UserService;
 import com.example.utils.JwtUtil;
 import com.example.vo.user.LoginVO;
 import com.example.vo.user.UserVO;
@@ -38,14 +40,19 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final StringRedisTemplate redisTemplate;
     private final JwtProperties jwtProperties;
-
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final SmsProperties smsProperties;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     @Override
     public void sendCode(SendCodeDTO dto) {
-        String code = RandomUtil.randomNumbers(6);
+        String code = RandomUtil.randomNumbers(smsProperties.getCodeLength());
         String key = String.format(RedisKeyConstant.SMS_CODE, dto.getPhone());
-        redisTemplate.opsForValue().set(key, code, 5, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(
+                key,
+                code,
+                smsProperties.getExpireMinutes(),
+                TimeUnit.MINUTES
+        );
 
         // TODO 接入短信服务，MVP 阶段打日志
         log.info("【验证码】手机号 {}，验证码 {}", dto.getPhone(), code);
@@ -75,12 +82,13 @@ public class UserServiceImpl implements UserService {
         User user = User.builder()
                 .username(dto.getUsername())
                 .password(passwordEncoder.encode(dto.getPassword()))
-                .nickname("用户" + RandomUtil.randomNumbers(6))
+                .nickname(UserConstant.DEFAULT_NICKNAME_PREFIX
+                        + RandomUtil.randomNumbers(UserConstant.DEFAULT_NICKNAME_RANDOM_LENGTH))
                 .phone(dto.getPhone())
-                .role("USER")
-                .status("normal")
-                .certified(0)
-                .creditScore(100)
+                .role(UserConstant.ROLE_USER)
+                .status(UserConstant.STATUS_NORMAL)
+                .certified(UserConstant.NOT_CERTIFIED)
+                .creditScore(UserConstant.DEFAULT_CREDIT_SCORE)
                 .createTime(LocalDateTime.now())
                 .updateTime(LocalDateTime.now())
                 .build();
@@ -107,7 +115,7 @@ public class UserServiceImpl implements UserService {
         }
 
         // 3. 账号状态
-        if ("banned".equals(user.getStatus())) {
+        if (UserConstant.STATUS_BANNED.equals(user.getStatus())) {
             throw new BaseException(MessageConstant.ACCOUNT_BANNED);
         }
 

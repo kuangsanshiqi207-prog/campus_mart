@@ -6,12 +6,14 @@ import com.example.dto.user.LoginDTO;
 import com.example.dto.user.RegisterDTO;
 import com.example.dto.user.ResetPasswordDTO;
 import com.example.dto.user.SendCodeDTO;
+import com.example.service.user.UserService;
 import com.example.vo.user.LoginVO;
 import com.example.vo.user.UserVO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.TimeUnit;
@@ -19,6 +21,8 @@ import java.util.concurrent.TimeUnit;
 @SpringBootTest
 @Transactional
 public class UserServiceTest {
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
     private UserService userService;
