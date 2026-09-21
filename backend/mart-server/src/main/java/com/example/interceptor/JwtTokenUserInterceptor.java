@@ -1,12 +1,14 @@
 package com.example.interceptor;
 
 import com.example.constant.JwtClaimsConstant;
+import com.example.constant.RedisKeyConstant;
 import com.example.context.BaseContext;
 import com.example.properties.JwtProperties;
 import com.example.utils.JwtUtil;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -24,6 +26,9 @@ public class JwtTokenUserInterceptor implements HandlerInterceptor {
     @Autowired
     private JwtProperties jwtProperties;
 
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+
     /**
      * 校验jwt
      *
@@ -34,6 +39,8 @@ public class JwtTokenUserInterceptor implements HandlerInterceptor {
      * @throws Exception
      */
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+
+
         //判断当前拦截到的是Controller的方法还是其他资源
         if (!(handler instanceof HandlerMethod)) {
             //当前拦截到的不是动态方法，直接放行
@@ -46,6 +53,13 @@ public class JwtTokenUserInterceptor implements HandlerInterceptor {
         // 去掉 Bearer 前缀
         if (token != null && token.startsWith("Bearer ")) {
             token = token.substring(7);
+        }
+        // 2. 检查黑名单
+        String blacklistKey = String.format(RedisKeyConstant.TOKEN_BLACKLIST, token);
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(blacklistKey))) {
+            log.warn("token 已在黑名单中，拒绝访问");
+            response.setStatus(401);
+            return false;
         }
 
         //2、校验令牌

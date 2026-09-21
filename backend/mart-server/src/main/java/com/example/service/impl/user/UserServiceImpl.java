@@ -19,6 +19,7 @@ import com.example.service.user.UserService;
 import com.example.utils.JwtUtil;
 import com.example.vo.user.LoginVO;
 import com.example.vo.user.UserVO;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -140,7 +142,37 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void logout(String token) {
-        // JWT 无状态，MVP 阶段前端删 token 即可
+        if (token == null || token.isEmpty()) {
+            return;
+        }
+
+        // 去掉 Bearer 前缀
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+
+        // 解析 token 拿过期时间
+        Claims claims;
+        try {
+            claims = JwtUtil.parseJWT(jwtProperties.getUserSecretKey(), token);
+        } catch (Exception e) {
+            // token 本身无效，直接返回
+            log.warn("登出时 token 解析失败：{}", e.getMessage());
+            return;
+        }
+
+        Date expiration = claims.getExpiration();
+        long ttlMillis = expiration.getTime() - System.currentTimeMillis();
+        if (ttlMillis <= 0) {
+            // 已过期，无需加黑名单
+            return;
+        }
+
+        // 加入黑名单
+        String key = String.format(RedisKeyConstant.TOKEN_BLACKLIST, token);
+        redisTemplate.opsForValue().set(key, "1", ttlMillis, TimeUnit.MILLISECONDS);
+
+        log.info("用户登出，token 已加入黑名单，剩余有效期 {} 毫秒", ttlMillis);
     }
 
     @Override

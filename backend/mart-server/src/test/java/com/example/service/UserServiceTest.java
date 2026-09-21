@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 @SpringBootTest
 @Transactional
 public class UserServiceTest {
+
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
@@ -44,10 +45,8 @@ public class UserServiceTest {
     }
 
     // ========== 注册 ==========
-    // 注意：用独立用户名和手机号，避免和 testGetCurrentUser / testLogin 使用的 testuser001 冲突
     @Test
     public void testRegister() {
-        // 先把验证码写进 Redis，避免依赖发送接口
         String phone = "13900000001";
         String username = "testuser_register";
 
@@ -85,21 +84,17 @@ public class UserServiceTest {
     // ========== 获取当前用户 ==========
     @Test
     public void testGetCurrentUser() {
-        // 模拟拦截器把 userId 放进 ThreadLocal
         BaseContext.setCurrentId(1L);
 
         try {
             UserVO vo = userService.getCurrentUser();
             System.out.println("当前用户：" + vo);
         } finally {
-            // 用 finally 保证即使抛异常也会清理 ThreadLocal，避免污染后续测试
             BaseContext.removeCurrentId();
         }
     }
 
     // ========== 重置密码 ==========
-    // 因为类上有 @Transactional，本方法修改的密码会在方法结束后回滚，
-    // 不会影响 testLogin 里 testuser001 的密码
     @Test
     public void testResetPassword() {
         String phone = "13800138001";
@@ -119,10 +114,64 @@ public class UserServiceTest {
         System.out.println("重置密码成功");
     }
 
-    // ========== 登出 ==========
+    // ========== 登出：token 写入黑名单 ==========
     @Test
-    public void testLogout() {
-        userService.logout("any-token");
-        System.out.println("登出成功");
+    public void testLogoutAddsToBlacklist() {
+        // 1. 登录拿 token
+        LoginDTO loginDTO = new LoginDTO();
+        loginDTO.setUsername("testuser001");
+        loginDTO.setPassword("123456");
+        LoginVO loginVO = userService.login(loginDTO);
+        String token = loginVO.getToken();
+        System.out.println("登录 token：" + token);
+
+        // 2. 登出
+        userService.logout(token);
+
+        // 3. 检查 Redis 黑名单
+        String key = String.format(RedisKeyConstant.TOKEN_BLACKLIST, token);
+        Boolean exists = redisTemplate.hasKey(key);
+        Long ttl = redisTemplate.getExpire(key);
+
+        System.out.println("黑名单中存在：" + exists);
+        System.out.println("黑名单 TTL（秒）：" + ttl);
+
+        // 4. 清理（Redis 不参与事务回滚，手动删除）
+        redisTemplate.delete(key);
+        System.out.println("已清理黑名单 key");
+    }
+
+    // ========== 登出：Bearer 前缀正确处理 ==========
+    @Test
+    public void testLogoutWithBearerPrefix() {
+        LoginDTO loginDTO = new LoginDTO();
+        loginDTO.setUsername("testuser001");
+        loginDTO.setPassword("123456");
+        LoginVO loginVO = userService.login(loginDTO);
+        String token = loginVO.getToken();
+
+        // 带 Bearer 前缀登出
+        userService.logout("Bearer " + token);
+
+        String key = String.format(RedisKeyConstant.TOKEN_BLACKLIST, token);
+        Boolean exists = redisTemplate.hasKey(key);
+        System.out.println("带 Bearer 前缀登出后，黑名单存在：" + exists);
+
+        redisTemplate.delete(key);
+    }
+
+    // ========== 登出：无效 token 不报错 ==========
+    @Test
+    public void testLogoutWithInvalidToken() {
+        userService.logout("invalid-token");
+        System.out.println("无效 token 登出，未抛异常");
+    }
+
+    // ========== 登出：空 token 不报错 ==========
+    @Test
+    public void testLogoutWithEmptyToken() {
+        userService.logout("");
+        userService.logout(null);
+        System.out.println("空 token 登出，未抛异常");
     }
 }
