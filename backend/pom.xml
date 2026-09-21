@@ -44,6 +44,7 @@
         <mysql>8.4.0</mysql>
         <wechatpay>0.5.0</wechatpay>
         <fastjson>1.2.76</fastjson>
+        <hutool>5.8.27</hutool>
     </properties>
 
     <dependencyManagement>
@@ -159,6 +160,12 @@
                 <groupId>com.github.wechatpay-apiv3</groupId>
                 <artifactId>wechatpay-apache-httpclient</artifactId>
                 <version>${wechatpay}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -1,31 +1,60 @@
+# ==================== 服务 ====================
 server:
-  port: 8080
+  port: ${app.port}
 
+# ==================== Spring ====================
 spring:
   application:
-    name: campus-mart
-
+    name: ${app.name}
+  profiles:
+    active: ${app.profile:dev}
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/campus_mart?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true
-    username: root
-    password: 123456
+    driver-class-name: ${db.driver-class-name}
+    url: ${db.url}
+    username: ${db.username}
+    password: ${db.password}
+  data:
+    redis:
+      host: ${redis.host}
+      port: ${redis.port}
+      password: ${redis.password}
+      database: ${redis.database}
+      timeout: ${redis.timeout}
+      lettuce:
+        pool:
+          max-active: ${redis.lettuce.pool.max-active}
+          max-idle: ${redis.lettuce.pool.max-idle}
+          min-idle: ${redis.lettuce.pool.min-idle}
+# ==================== JWT ====================
+campus:
+  jwt:
+    admin-secret-key: ${jwt.admin-secret-key}
+    admin-ttl: ${jwt.admin-ttl}
+    admin-token-name: ${jwt.admin-token-name}
+    user-secret-key: ${jwt.user-secret-key}
+    user-ttl: ${jwt.user-ttl}
+    user-token-name: ${jwt.user-token-name}
 
+# ==================== MyBatis ====================
 mybatis:
   configuration:
-    map-underscore-to-camel-case: true
+    map-underscore-to-camel-case: ${mybatis.map-underscore-to-camel-case}
+  mapper-locations: ${mybatis.mapper-locations}
+  type-aliases-package: ${mybatis.type-aliases-package}
 
+# ==================== 日志 ====================
 logging:
   level:
-    com.example: debug
+    com.example: ${logging.level.com.example}
 
-# application.yml
+# ==================== 接口文档 ====================
 springdoc:
   api-docs:
-    path: /v3/api-docs
+    path: ${springdoc.api-docs.path}
   swagger-ui:
-    path: /swagger-ui.html
+    path: ${springdoc.swagger-ui.path}
+
 knife4j:
-  enable: true
+  enable: ${knife4j.enable}
   setting:
-    language: zh_cn
+    language: ${knife4j.setting.language}

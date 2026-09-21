@@ -24,4 +24,14 @@ public class MessageConstant {
     public static final String ORDER_STATUS_ERROR = "订单状态错误";
     public static final String ORDER_NOT_FOUND = "订单不存在";
 
+
+    // ===== 认证模块新增 =====
+    public static final String CODE_ERROR = "验证码错误或已过期";
+    public static final String USERNAME_EXISTS = "用户名已存在";
+    public static final String PHONE_EXISTS = "手机号已注册";
+    public static final String PHONE_NOT_REGISTERED = "手机号未注册";
+    public static final String ACCOUNT_BANNED = "账号已被封禁";
+    public static final String USERNAME_OR_PASSWORD_ERROR = "用户名或密码错误";
+    public static final String USER_NOT_FOUND = "用户不存在";
+
 }
