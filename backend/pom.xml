@@ -51,6 +51,26 @@
             **/mvnw.cmd
         </sonar.exclusions>
 
+        <sonar.coverage.exclusions>
+            <!-- 整个 pojo 模块：DTO、VO、entity -->
+            mart-pojo/**,
+
+            <!-- common 模块的常量、异常、结果类、配置属性 -->
+            mart-common/src/main/java/com/example/constant/**,
+            mart-common/src/main/java/com/example/exception/**,
+            mart-common/src/main/java/com/example/result/**,
+            mart-common/src/main/java/com/example/properties/**,
+            mart-common/src/main/java/com/example/enumeration/**,
+            mart-common/src/main/java/com/example/context/**,
+
+            <!-- common 模块的工具类（难以单元测试，通常不纳入覆盖率） -->
+            mart-common/src/main/java/com/example/utils/**,
+
+            <!-- server 模块的基础设施代码 -->
+            mart-server/src/main/java/com/example/config/**,
+            mart-server/src/main/java/com/example/handle/**,
+            mart-server/src/main/java/com/example/interceptor/**
+        </sonar.coverage.exclusions>
         <!-- 版本统一管理 -->
         <mybatis.spring>3.0.4</mybatis.spring>
         <lombok>1.18.34</lombok>

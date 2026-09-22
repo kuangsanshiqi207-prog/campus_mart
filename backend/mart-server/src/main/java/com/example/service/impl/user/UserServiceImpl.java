@@ -1,5 +1,6 @@
 package com.example.service.impl.user;
 
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.example.constant.JwtClaimsConstant;
 import com.example.constant.MessageConstant;
@@ -82,6 +83,7 @@ public class UserServiceImpl implements UserService {
 
         // 4. 构造用户
         User user = User.builder()
+                .id(IdUtil.getSnowflakeNextId())
                 .username(dto.getUsername())
                 .password(passwordEncoder.encode(dto.getPassword()))
                 .nickname(UserConstant.DEFAULT_NICKNAME_PREFIX

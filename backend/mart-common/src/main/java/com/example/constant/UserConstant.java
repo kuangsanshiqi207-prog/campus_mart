@@ -21,4 +21,13 @@ public class UserConstant {
     public static final Integer DEFAULT_CREDIT_SCORE = 100;
     public static final String DEFAULT_NICKNAME_PREFIX = "用户";
     public static final Integer DEFAULT_NICKNAME_RANDOM_LENGTH = 6;
+
+    // ==================== 认证状态 ====================
+    public static final String CERT_STATUS_PENDING = "pending";
+    public static final String CERT_STATUS_APPROVED = "approved";
+    public static final String CERT_STATUS_REJECTED = "rejected";
+
+    // ==================== 地址默认 ====================
+    public static final Integer ADDRESS_NOT_DEFAULT = 0;
+    public static final Integer ADDRESS_DEFAULT = 1;
 }

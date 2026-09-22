@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.user.AddressMapper">
+
+    <sql id="BaseColumns">
+        id, user_id, receiver, phone, region, detail, is_default,
+        create_time, update_time, deleted
+    </sql>
+
+    <select id="listByUserId" resultType="com.example.entity.Address">
+        SELECT <include refid="BaseColumns"/>
+        FROM address
+        WHERE user_id = #{userId} AND deleted = 0
+        ORDER BY is_default DESC, create_time DESC
+    </select>
+
+    <select id="getById" resultType="com.example.entity.Address">
+        SELECT <include refid="BaseColumns"/>
+        FROM address
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.Address">
+        INSERT INTO address (
+            id, user_id, receiver, phone, region, detail, is_default,
+            create_time, update_time, deleted
+        ) VALUES (
+                     #{id}, #{userId}, #{receiver}, #{phone}, #{region}, #{detail}, #{isDefault},
+                     #{createTime}, #{updateTime}, 0
+                 )
+    </insert>
+
+    <update id="update" parameterType="com.example.entity.Address">
+        UPDATE address
+        <set>
+            <if test="receiver != null">receiver = #{receiver},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="region != null">region = #{region},</if>
+            <if test="detail != null">detail = #{detail},</if>
+            <if test="isDefault != null">is_default = #{isDefault},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="clearDefault">
+        UPDATE address
+        SET is_default = 0, update_time = NOW()
+        WHERE user_id = #{userId} AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE address
+        SET deleted = 1, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+</mapper>

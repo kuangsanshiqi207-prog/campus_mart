@@ -34,4 +34,18 @@ public class MessageConstant {
     public static final String USERNAME_OR_PASSWORD_ERROR = "用户名或密码错误";
     public static final String USER_NOT_FOUND = "用户不存在";
 
+
+    // ===== 个人中心 =====
+    public static final String OLD_PASSWORD_ERROR = "原密码错误";
+    public static final String PASSWORD_SAME = "新密码不能与原密码相同";
+
+    // ===== 校园认证 =====
+    public static final String CERTIFICATION_PENDING = "已有待审核的认证，请勿重复提交";
+    public static final String CERTIFICATION_APPROVED = "已通过校园认证，无需重复提交";
+    public static final String CERTIFICATION_NOT_FOUND = "认证记录不存在";
+
+    // ===== 地址 =====
+    public static final String ADDRESS_NOT_FOUND = "地址不存在";
+    public static final String ADDRESS_NO_PERMISSION = "无权操作该地址";
+
 }

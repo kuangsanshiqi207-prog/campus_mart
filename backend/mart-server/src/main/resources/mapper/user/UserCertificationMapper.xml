@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.user.UserCertificationMapper">
+
+    <sql id="BaseColumns">
+        id, user_id, school, student_no, real_name, card_image,
+        status, reason, create_time, update_time, deleted
+    </sql>
+
+    <select id="listByUserId" resultType="com.example.entity.UserCertification">
+        SELECT <include refid="BaseColumns"/>
+        FROM user_certification
+        WHERE user_id = #{userId} AND deleted = 0
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="getById" resultType="com.example.entity.UserCertification">
+        SELECT <include refid="BaseColumns"/>
+        FROM user_certification
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.UserCertification">
+        INSERT INTO user_certification (
+            id, user_id, school, student_no, real_name, card_image,
+            status, reason, create_time, update_time, deleted
+        ) VALUES (
+                     #{id}, #{userId}, #{school}, #{studentNo}, #{realName}, #{cardImage},
+                     #{status}, #{reason}, #{createTime}, #{updateTime}, 0
+                 )
+    </insert>
+
+    <update id="updateStatus">
+        UPDATE user_certification
+        SET status = #{status}, reason = #{reason}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>
