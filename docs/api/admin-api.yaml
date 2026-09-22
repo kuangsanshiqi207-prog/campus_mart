@@ -1,0 +1,1506 @@
+openapi: 3.0.3
+info:
+  title: CampusTrade 管理端 API
+  version: 1.0.0
+  description: 管理端接口，平台监管
+
+servers:
+  - url: http://localhost:8080
+
+tags:
+  - name: 01-管理端-认证
+  - name: 02-管理端-用户管理
+  - name: 03-管理端-商品管理
+  - name: 04-管理端-分类管理
+  - name: 05-管理端-订单管理
+  - name: 06-管理端-评价管理
+  - name: 07-管理端-公告管理
+  - name: 08-管理端-举报管理
+  - name: 09-管理端-AI审核
+  - name: 10-管理端-AI客服
+  - name: 11-管理端-统计
+  - name: 12-管理端-系统
+
+security:
+  - BearerAuth: []
+
+paths:
+
+  # ==================== 01 认证 ====================
+  /admin/auth/login:
+    post:
+      tags: [01-管理端-认证]
+      summary: 管理员登录
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginDTO' }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/LoginVO' }
+
+  /admin/auth/logout:
+    post:
+      tags: [01-管理端-认证]
+      summary: 管理员登出
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /admin/auth/profile:
+    get:
+      tags: [01-管理端-认证]
+      summary: 当前管理员信息
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/AdminVO' }
+
+  # ==================== 02 用户管理 ====================
+  /admin/users:
+    get:
+      tags: [02-管理端-用户管理]
+      summary: 用户列表
+      parameters:
+        - { name: keyword, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string } }
+        - { name: certified, in: query, schema: { type: boolean } }
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageUserVO' } } } }
+
+  /admin/users/{id}:
+    get:
+      tags: [02-管理端-用户管理]
+      summary: 用户详情
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/UserVO' }
+
+  /admin/users/{id}/status:
+    put:
+      tags: [02-管理端-用户管理]
+      summary: 封禁/解封
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: { type: string, enum: [normal, banned] }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /admin/users/{id}/credit:
+    put:
+      tags: [02-管理端-用户管理]
+      summary: 调整信用分
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                delta: { type: integer }
+                reason: { type: string }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /admin/certifications:
+    get:
+      tags: [02-管理端-用户管理]
+      summary: 认证审核列表
+      parameters:
+        - { name: status, in: query, schema: { type: string } }
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageCertificationVO' } } } }
+
+  /admin/certifications/{id}:
+    put:
+      tags: [02-管理端-用户管理]
+      summary: 审核认证
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: { type: string, enum: [approved, rejected] }
+                reason: { type: string }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  # ==================== 03 商品管理 ====================
+  /admin/products:
+    get:
+      tags: [03-管理端-商品管理]
+      summary: 商品列表
+      parameters:
+        - { name: keyword, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string } }
+        - { name: auditStatus, in: query, schema: { type: string } }
+        - { name: categoryId, in: query, schema: { type: integer, format: int64 } }
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageProductVO' } } } }
+
+  /admin/products/{id}:
+    get:
+      tags: [03-管理端-商品管理]
+      summary: 商品详情
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/ProductDetailVO' }
+    delete:
+      tags: [03-管理端-商品管理]
+      summary: 删除商品
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /admin/products/{id}/audit:
+    put:
+      tags: [03-管理端-商品管理]
+      summary: 人工审核
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                result: { type: string, enum: [pass, reject] }
+                reason: { type: string }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /admin/products/{id}/offline:
+    put:
+      tags: [03-管理端-商品管理]
+      summary: 强制下架
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  # ==================== 04 分类管理 ====================
+  /admin/categories:
+    get:
+      tags: [04-管理端-分类管理]
+      summary: 分类列表
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/CategoryVO' }
+    post:
+      tags: [04-管理端-分类管理]
+      summary: 新增分类
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CategoryDTO' }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultLong' } } } }
+
+  /admin/categories/{id}:
+    put:
+      tags: [04-管理端-分类管理]
+      summary: 修改分类
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CategoryDTO' }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+    delete:
+      tags: [04-管理端-分类管理]
+      summary: 删除分类
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  # ==================== 05 订单管理 ====================
+  /admin/orders:
+    get:
+      tags: [05-管理端-订单管理]
+      summary: 订单列表
+      parameters:
+        - { name: orderNo, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string } }
+        - { name: type, in: query, schema: { type: string } }
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageOrderVO' } } } }
+
+  /admin/orders/{id}:
+    get:
+      tags: [05-管理端-订单管理]
+      summary: 订单详情
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/OrderVO' }
+
+  /admin/orders/{id}/cancel:
+    put:
+      tags: [05-管理端-订单管理]
+      summary: 强制取消
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /admin/orders/{id}/refund:
+    put:
+      tags: [05-管理端-订单管理]
+      summary: 处理退款
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                result: { type: string, enum: [approve, reject] }
+                reason: { type: string }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  # ==================== 06 评价管理 ====================
+  /admin/reviews:
+    get:
+      tags: [06-管理端-评价管理]
+      summary: 评价列表
+      parameters:
+        - { name: keyword, in: query, schema: { type: string } }
+        - { name: score, in: query, schema: { type: integer } }
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageReviewVO' } } } }
+
+  /admin/reviews/{id}:
+    delete:
+      tags: [06-管理端-评价管理]
+      summary: 删除违规评价
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  # ==================== 07 公告管理 ====================
+  /admin/announcements:
+    get:
+      tags: [07-管理端-公告管理]
+      summary: 公告列表
+      parameters:
+        - { name: status, in: query, schema: { type: string } }
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageAnnouncementVO' } } } }
+    post:
+      tags: [07-管理端-公告管理]
+      summary: 发布公告
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AnnouncementDTO' }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultLong' } } } }
+
+  /admin/announcements/{id}:
+    put:
+      tags: [07-管理端-公告管理]
+      summary: 修改公告
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AnnouncementDTO' }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+    delete:
+      tags: [07-管理端-公告管理]
+      summary: 删除公告
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  # ==================== 08 举报管理 ====================
+  /admin/reports:
+    get:
+      tags: [08-管理端-举报管理]
+      summary: 举报列表
+      parameters:
+        - { name: status, in: query, schema: { type: string } }
+        - { name: targetType, in: query, schema: { type: string } }
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageReportVO' } } } }
+
+  /admin/reports/{id}:
+    get:
+      tags: [08-管理端-举报管理]
+      summary: 举报详情
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/ReportVO' }
+
+  /admin/reports/{id}/handle:
+    put:
+      tags: [08-管理端-举报管理]
+      summary: 处理举报
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                result: { type: string, enum: [valid, invalid] }
+                action: { type: string, enum: [none, offline, ban, warn] }
+                reason: { type: string }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /admin/appeals:
+    get:
+      tags: [08-管理端-举报管理]
+      summary: 申诉列表
+      parameters:
+        - { name: status, in: query, schema: { type: string } }
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageAppealVO' } } } }
+
+  /admin/appeals/{id}/handle:
+    put:
+      tags: [08-管理端-举报管理]
+      summary: 处理申诉
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                result: { type: string, enum: [approve, reject] }
+                reason: { type: string }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  # ==================== 09 AI审核 ====================
+  /admin/audits:
+    get:
+      tags: [09-管理端-AI审核]
+      summary: 审核记录列表
+      parameters:
+        - { name: riskLevel, in: query, schema: { type: string, enum: [low, medium, high] } }
+        - { name: action, in: query, schema: { type: string, enum: [pass, manual_review, reject] } }
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageAuditRecordVO' } } } }
+
+  /admin/audits/{id}:
+    get:
+      tags: [09-管理端-AI审核]
+      summary: 审核记录详情
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/AuditRecordVO' }
+
+  /admin/audits/{id}/review:
+    put:
+      tags: [09-管理端-AI审核]
+      summary: 人工复核
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                result: { type: string, enum: [pass, reject] }
+                reason: { type: string }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /admin/audit-rules:
+    get:
+      tags: [09-管理端-AI审核]
+      summary: 审核规则列表
+      parameters:
+        - { name: type, in: query, schema: { type: string } }
+        - { name: enabled, in: query, schema: { type: boolean } }
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageAuditRuleVO' } } } }
+    post:
+      tags: [09-管理端-AI审核]
+      summary: 新增审核规则
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AuditRuleDTO' }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultLong' } } } }
+
+  /admin/audit-rules/{id}:
+    put:
+      tags: [09-管理端-AI审核]
+      summary: 修改审核规则
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AuditRuleDTO' }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+    delete:
+      tags: [09-管理端-AI审核]
+      summary: 删除审核规则
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  # ==================== 10 AI客服 ====================
+  /admin/ai/chat/sessions:
+    get:
+      tags: [10-管理端-AI客服]
+      summary: 会话列表
+      parameters:
+        - { name: status, in: query, schema: { type: string } }
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageChatSessionVO' } } } }
+
+  /admin/ai/chat/sessions/{id}/messages:
+    get:
+      tags: [10-管理端-AI客服]
+      summary: 会话消息详情
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/ChatMessageVO' }
+
+  /admin/ai/chat/sessions/{id}/reply:
+    post:
+      tags: [10-管理端-AI客服]
+      summary: 人工回复
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content: { type: string }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /admin/ai/chat/knowledge:
+    get:
+      tags: [10-管理端-AI客服]
+      summary: 知识库列表
+      parameters:
+        - { name: keyword, in: query, schema: { type: string } }
+        - { name: category, in: query, schema: { type: string } }
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageKnowledgeVO' } } } }
+    post:
+      tags: [10-管理端-AI客服]
+      summary: 新增知识
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/KnowledgeDTO' }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultLong' } } } }
+
+  /admin/ai/chat/knowledge/{id}:
+    put:
+      tags: [10-管理端-AI客服]
+      summary: 修改知识
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/KnowledgeDTO' }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+    delete:
+      tags: [10-管理端-AI客服]
+      summary: 删除知识
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  # ==================== 11 统计 ====================
+  /admin/stats/overview:
+    get:
+      tags: [11-管理端-统计]
+      summary: 首页概览
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/OverviewVO' }
+
+  /admin/stats/users:
+    get:
+      tags: [11-管理端-统计]
+      summary: 用户统计
+      parameters:
+        - { name: startDate, in: query, schema: { type: string, format: date } }
+        - { name: endDate, in: query, schema: { type: string, format: date } }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/TrendVO' }
+
+  /admin/stats/products:
+    get:
+      tags: [11-管理端-统计]
+      summary: 商品统计
+      parameters:
+        - { name: startDate, in: query, schema: { type: string, format: date } }
+        - { name: endDate, in: query, schema: { type: string, format: date } }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/TrendVO' }
+
+  /admin/stats/orders:
+    get:
+      tags: [11-管理端-统计]
+      summary: 订单统计
+      parameters:
+        - { name: startDate, in: query, schema: { type: string, format: date } }
+        - { name: endDate, in: query, schema: { type: string, format: date } }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/TrendVO' }
+
+  /admin/stats/audits:
+    get:
+      tags: [11-管理端-统计]
+      summary: AI审核统计
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/AuditStatsVO' }
+
+  /admin/stats/reports:
+    get:
+      tags: [11-管理端-统计]
+      summary: 举报统计
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/ReportStatsVO' }
+
+  /admin/stats/export:
+    get:
+      tags: [11-管理端-统计]
+      summary: 导出统计 Excel
+      parameters:
+        - { name: type, in: query, required: true, schema: { type: string, enum: [users, products, orders, audits, reports] } }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/vnd.ms-excel:
+              schema: { type: string, format: binary }
+
+  # ==================== 12 系统 ====================
+  /admin/admins:
+    get:
+      tags: [12-管理端-系统]
+      summary: 管理员列表
+      parameters:
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageAdminVO' } } } }
+    post:
+      tags: [12-管理端-系统]
+      summary: 新增管理员
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AdminCreateDTO' }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultLong' } } } }
+
+  /admin/admins/{id}:
+    put:
+      tags: [12-管理端-系统]
+      summary: 修改管理员
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AdminCreateDTO' }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+    delete:
+      tags: [12-管理端-系统]
+      summary: 删除管理员
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /admin/roles:
+    get:
+      tags: [12-管理端-系统]
+      summary: 角色列表
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/RoleVO' }
+
+  /admin/logs/login:
+    get:
+      tags: [12-管理端-系统]
+      summary: 登录日志
+      parameters:
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageLoginLogVO' } } } }
+
+  /admin/logs/operation:
+    get:
+      tags: [12-管理端-系统]
+      summary: 操作日志
+      parameters:
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageOperationLogVO' } } } }
+
+  /admin/configs:
+    get:
+      tags: [12-管理端-系统]
+      summary: 系统配置列表
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/ConfigVO' }
+
+  /admin/configs/{key}:
+    put:
+      tags: [12-管理端-系统]
+      summary: 修改配置
+      parameters:
+        - { name: key, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                value: { type: string }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /admin/cache:
+    delete:
+      tags: [12-管理端-系统]
+      summary: 清理缓存
+      parameters:
+        - { name: pattern, in: query, schema: { type: string } }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+components:
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    PageNum:
+      name: pageNum
+      in: query
+      schema: { type: integer, default: 1 }
+    PageSize:
+      name: pageSize
+      in: query
+      schema: { type: integer, default: 10 }
+
+  schemas:
+
+    Result:
+      type: object
+      properties:
+        code: { type: integer, example: 1 }
+        msg: { type: string }
+        data: { type: object }
+
+    ResultVoid:
+      type: object
+      properties:
+        code: { type: integer, example: 1 }
+        msg: { type: string }
+        data: { type: object, nullable: true }
+
+    ResultLong:
+      type: object
+      properties:
+        code: { type: integer, example: 1 }
+        msg: { type: string }
+        data: { type: integer, format: int64 }
+
+    Page:
+      type: object
+      properties:
+        total: { type: integer, format: int64 }
+        records: { type: array, items: { type: object } }
+
+    PageUserVO:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/Page'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items: { $ref: '#/components/schemas/UserVO' }
+
+    PageCertificationVO:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/Page'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items: { $ref: '#/components/schemas/CertificationVO' }
+
+    PageProductVO:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/Page'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items: { $ref: '#/components/schemas/ProductVO' }
+
+    PageOrderVO:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/Page'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items: { $ref: '#/components/schemas/OrderVO' }
+
+    PageReviewVO:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/Page'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items: { $ref: '#/components/schemas/ReviewVO' }
+
+    PageAnnouncementVO:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/Page'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items: { $ref: '#/components/schemas/AnnouncementVO' }
+
+    PageReportVO:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/Page'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items: { $ref: '#/components/schemas/ReportVO' }
+
+    PageAppealVO:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/Page'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items: { $ref: '#/components/schemas/AppealVO' }
+
+    PageAuditRecordVO:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/Page'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items: { $ref: '#/components/schemas/AuditRecordVO' }
+
+    PageAuditRuleVO:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/Page'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items: { $ref: '#/components/schemas/AuditRuleVO' }
+
+    PageChatSessionVO:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/Page'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items: { $ref: '#/components/schemas/ChatSessionVO' }
+
+    PageKnowledgeVO:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/Page'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items: { $ref: '#/components/schemas/KnowledgeVO' }
+
+    PageAdminVO:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/Page'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items: { $ref: '#/components/schemas/AdminVO' }
+
+    PageLoginLogVO:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/Page'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items: { $ref: '#/components/schemas/LoginLogVO' }
+
+    PageOperationLogVO:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/Page'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items: { $ref: '#/components/schemas/OperationLogVO' }
+
+    LoginDTO:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string }
+        password: { type: string }
+
+    LoginVO:
+      type: object
+      properties:
+        token: { type: string }
+        userId: { type: integer, format: int64 }
+        username: { type: string }
+        nickname: { type: string }
+        role: { type: string }
+
+    UserVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        username: { type: string }
+        nickname: { type: string }
+        avatar: { type: string }
+        phone: { type: string }
+        email: { type: string }
+        role: { type: string }
+        status: { type: string }
+        certified: { type: integer }
+        creditScore: { type: integer }
+        createTime: { type: string, format: date-time }
+
+    CertificationVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        userId: { type: integer, format: int64 }
+        school: { type: string }
+        studentNo: { type: string }
+        realName: { type: string }
+        cardImage: { type: string }
+        status: { type: string }
+        reason: { type: string }
+        createTime: { type: string, format: date-time }
+
+    ProductVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        title: { type: string }
+        price: { type: number }
+        cover: { type: string }
+        status: { type: string }
+        sellerId: { type: integer, format: int64 }
+        sellerNickname: { type: string }
+        createTime: { type: string, format: date-time }
+
+    ProductDetailVO:
+      allOf:
+        - $ref: '#/components/schemas/ProductVO'
+        - type: object
+          properties:
+            description: { type: string }
+            images:
+              type: array
+              items: { type: string }
+
+    CategoryDTO:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        parentId: { type: integer, format: int64 }
+        sort: { type: integer }
+
+    CategoryVO:
+      allOf:
+        - $ref: '#/components/schemas/CategoryDTO'
+        - type: object
+          properties:
+            id: { type: integer, format: int64 }
+
+    OrderVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        orderNo: { type: string }
+        productId: { type: integer, format: int64 }
+        productTitle: { type: string }
+        buyerId: { type: integer, format: int64 }
+        buyerNickname: { type: string }
+        sellerId: { type: integer, format: int64 }
+        sellerNickname: { type: string }
+        amount: { type: number }
+        status: { type: string }
+        createTime: { type: string, format: date-time }
+
+    ReviewVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        orderId: { type: integer, format: int64 }
+        fromUserId: { type: integer, format: int64 }
+        toUserId: { type: integer, format: int64 }
+        score: { type: integer }
+        content: { type: string }
+        createTime: { type: string, format: date-time }
+
+    AnnouncementDTO:
+      type: object
+      required: [title, content]
+      properties:
+        title: { type: string }
+        content: { type: string }
+        status: { type: string, enum: [draft, published] }
+
+    AnnouncementVO:
+      allOf:
+        - $ref: '#/components/schemas/AnnouncementDTO'
+        - type: object
+          properties:
+            id: { type: integer, format: int64 }
+            createTime: { type: string, format: date-time }
+
+    ReportVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        reporterId: { type: integer, format: int64 }
+        targetType: { type: string }
+        targetId: { type: integer, format: int64 }
+        reason: { type: string }
+        description: { type: string }
+        images:
+          type: array
+          items: { type: string }
+        status: { type: string }
+        action: { type: string }
+        createTime: { type: string, format: date-time }
+
+    AppealVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        reportId: { type: integer, format: int64 }
+        userId: { type: integer, format: int64 }
+        reason: { type: string }
+        status: { type: string, enum: [pending, approved, rejected] }
+        createTime: { type: string, format: date-time }
+
+    AuditRecordVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        productId: { type: integer, format: int64 }
+        requestId: { type: string }
+        riskLevel: { type: string, enum: [low, medium, high] }
+        action: { type: string, enum: [pass, manual_review, reject] }
+        labels:
+          type: array
+          items: { type: string }
+        reason: { type: string }
+        confidence: { type: number }
+        model: { type: string }
+        reviewedBy: { type: integer, format: int64 }
+        reviewedAt: { type: string, format: date-time }
+        createTime: { type: string, format: date-time }
+
+    AuditRuleDTO:
+      type: object
+      required: [type, content]
+      properties:
+        type: { type: string, enum: [keyword, regex, category] }
+        content: { type: string }
+        riskLevel: { type: string, enum: [low, medium, high] }
+        enabled: { type: boolean }
+
+    AuditRuleVO:
+      allOf:
+        - $ref: '#/components/schemas/AuditRuleDTO'
+        - type: object
+          properties:
+            id: { type: integer, format: int64 }
+            createTime: { type: string, format: date-time }
+
+    ChatSessionVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        userId: { type: integer, format: int64 }
+        title: { type: string }
+        status: { type: string, enum: [ai, human, closed] }
+        lastMessage: { type: string }
+        lastMessageTime: { type: string, format: date-time }
+        createTime: { type: string, format: date-time }
+
+    ChatMessageVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        sessionId: { type: integer, format: int64 }
+        role: { type: string, enum: [user, ai, human] }
+        content: { type: string }
+        createTime: { type: string, format: date-time }
+
+    KnowledgeDTO:
+      type: object
+      required: [question, answer]
+      properties:
+        question: { type: string }
+        answer: { type: string }
+        category: { type: string }
+        enabled: { type: boolean }
+
+    KnowledgeVO:
+      allOf:
+        - $ref: '#/components/schemas/KnowledgeDTO'
+        - type: object
+          properties:
+            id: { type: integer, format: int64 }
+            createTime: { type: string, format: date-time }
+
+    OverviewVO:
+      type: object
+      properties:
+        userTotal: { type: integer, format: int64 }
+        userToday: { type: integer, format: int64 }
+        productTotal: { type: integer, format: int64 }
+        productToday: { type: integer, format: int64 }
+        orderTotal: { type: integer, format: int64 }
+        orderToday: { type: integer, format: int64 }
+        reportPending: { type: integer, format: int64 }
+        auditPending: { type: integer, format: int64 }
+
+    TrendVO:
+      type: object
+      properties:
+        dates:
+          type: array
+          items: { type: string, format: date }
+        values:
+          type: array
+          items: { type: integer, format: int64 }
+
+    AuditStatsVO:
+      type: object
+      properties:
+        total: { type: integer, format: int64 }
+        passCount: { type: integer, format: int64 }
+        manualCount: { type: integer, format: int64 }
+        rejectCount: { type: integer, format: int64 }
+        avgConfidence: { type: number }
+
+    ReportStatsVO:
+      type: object
+      properties:
+        total: { type: integer, format: int64 }
+        pending: { type: integer, format: int64 }
+        valid: { type: integer, format: int64 }
+        invalid: { type: integer, format: int64 }
+        handleRate: { type: number }
+
+    AdminCreateDTO:
+      type: object
+      required: [username, password, roleId]
+      properties:
+        username: { type: string }
+        password: { type: string }
+        nickname: { type: string }
+        roleId: { type: integer, format: int64 }
+
+    AdminVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        username: { type: string }
+        nickname: { type: string }
+        roleId: { type: integer, format: int64 }
+        roleName: { type: string }
+        status: { type: string }
+        createTime: { type: string, format: date-time }
+
+    RoleVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        code: { type: string }
+        permissions:
+          type: array
+          items: { type: string }
+
+    LoginLogVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        userId: { type: integer, format: int64 }
+        username: { type: string }
+        ip: { type: string }
+        status: { type: string }
+        createTime: { type: string, format: date-time }
+
+    OperationLogVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        userId: { type: integer, format: int64 }
+        username: { type: string }
+        action: { type: string }
+        targetType: { type: string }
+        targetId: { type: integer, format: int64 }
+        createTime: { type: string, format: date-time }
+
+    ConfigVO:
+      type: object
+      properties:
+        key: { type: string }
+        value: { type: string }
+        description: { type: string }

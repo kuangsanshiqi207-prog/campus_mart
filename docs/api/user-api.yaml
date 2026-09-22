@@ -1,0 +1,1629 @@
+openapi: 3.0.3
+info:
+  title: CampusTrade 用户端 API
+  version: 1.0.0
+  description: 用户端接口，买卖合一
+
+servers:
+  - url: http://localhost:8080
+
+tags:
+  - name: 01-用户端-认证
+  - name: 02-用户端-个人中心
+  - name: 03-用户端-市集
+  - name: 04-用户端-我的商店
+  - name: 05-用户端-交易
+  - name: 06-用户端-评价
+  - name: 07-用户端-消息
+  - name: 08-用户端-私信
+  - name: 09-用户端-举报
+  - name: 10-用户端-AI客服
+  - name: 11-用户端-个人统计
+  - name: 12-用户端-文件
+
+security:
+  - BearerAuth: []
+
+paths:
+
+  # ==================== 01 认证 ====================
+  /user/auth/send-code:
+    post:
+      tags: [01-用户端-认证]
+      summary: 发送验证码
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SendCodeDTO' }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /user/auth/register:
+    post:
+      tags: [01-用户端-认证]
+      summary: 用户注册
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterDTO' }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultLong' } } } }
+
+  /user/auth/login:
+    post:
+      tags: [01-用户端-认证]
+      summary: 用户登录
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginDTO' }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/LoginVO' }
+
+  /user/auth/logout:
+    post:
+      tags: [01-用户端-认证]
+      summary: 用户登出
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /user/auth/reset-password:
+    post:
+      tags: [01-用户端-认证]
+      summary: 重置密码
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ResetPasswordDTO' }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /user/auth/me:
+    get:
+      tags: [01-用户端-认证]
+      summary: 获取当前用户信息
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/UserVO' }
+
+  # ==================== 02 个人中心 ====================
+  /user/profile:
+    get:
+      tags: [02-用户端-个人中心]
+      summary: 获取当前用户信息
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/UserVO' }
+    put:
+      tags: [02-用户端-个人中心]
+      summary: 修改个人资料
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UserUpdateDTO' }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /user/profile/password:
+    put:
+      tags: [02-用户端-个人中心]
+      summary: 修改密码
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PasswordUpdateDTO' }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /user/certification:
+    post:
+      tags: [02-用户端-个人中心]
+      summary: 提交校园认证
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CertificationDTO' }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultLong' } } } }
+    get:
+      tags: [02-用户端-个人中心]
+      summary: 查看认证状态
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/CertificationVO' }
+
+  /user/addresses:
+    get:
+      tags: [02-用户端-个人中心]
+      summary: 地址列表
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/AddressVO' }
+    post:
+      tags: [02-用户端-个人中心]
+      summary: 新增地址
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AddressDTO' }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultLong' } } } }
+
+  /user/addresses/{id}:
+    put:
+      tags: [02-用户端-个人中心]
+      summary: 修改地址
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AddressDTO' }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+    delete:
+      tags: [02-用户端-个人中心]
+      summary: 删除地址
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  # ==================== 03 市集 ====================
+  /user/market/products:
+    get:
+      tags: [03-用户端-市集]
+      summary: 商品列表/搜索
+      security: []
+      parameters:
+        - { name: keyword, in: query, schema: { type: string } }
+        - { name: categoryId, in: query, schema: { type: integer, format: int64 } }
+        - { name: minPrice, in: query, schema: { type: number } }
+        - { name: maxPrice, in: query, schema: { type: number } }
+        - { name: condition, in: query, schema: { type: string } }
+        - { name: sort, in: query, schema: { type: string, enum: [latest, price_asc, price_desc, hot] } }
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageProductVO' } } } }
+
+  /user/market/products/{id}:
+    get:
+      tags: [03-用户端-市集]
+      summary: 商品详情
+      security: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/ProductDetailVO' }
+
+  /user/market/products/recommend:
+    get:
+      tags: [03-用户端-市集]
+      summary: 首页推荐
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageProductVO' } } } }
+
+  /user/market/products/{id}/similar:
+    get:
+      tags: [03-用户端-市集]
+      summary: 相似商品
+      security: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageProductVO' } } } }
+
+  /user/market/products/{id}/seller:
+    get:
+      tags: [03-用户端-市集]
+      summary: 查看卖家主页
+      security: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/SellerVO' }
+
+  /user/market/categories:
+    get:
+      tags: [03-用户端-市集]
+      summary: 分类列表
+      security: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/CategoryVO' }
+
+  /user/market/favorites/{productId}:
+    post:
+      tags: [03-用户端-市集]
+      summary: 收藏商品
+      parameters:
+        - { name: productId, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+    delete:
+      tags: [03-用户端-市集]
+      summary: 取消收藏
+      parameters:
+        - { name: productId, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /user/market/favorites:
+    get:
+      tags: [03-用户端-市集]
+      summary: 我的收藏
+      parameters:
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageProductVO' } } } }
+
+  /user/market/history:
+    get:
+      tags: [03-用户端-市集]
+      summary: 浏览历史
+      parameters:
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageProductVO' } } } }
+    delete:
+      tags: [03-用户端-市集]
+      summary: 清空浏览历史
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  # ==================== 04 我的商店 ====================
+  /user/shop/products:
+    post:
+      tags: [04-用户端-我的商店]
+      summary: 发布商品
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProductCreateDTO' }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultLong' } } } }
+    get:
+      tags: [04-用户端-我的商店]
+      summary: 我的商品列表
+      parameters:
+        - { name: status, in: query, schema: { type: string } }
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageProductVO' } } } }
+
+  /user/shop/products/{id}:
+    get:
+      tags: [04-用户端-我的商店]
+      summary: 我的商品详情
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/ProductDetailVO' }
+    put:
+      tags: [04-用户端-我的商店]
+      summary: 修改商品
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProductCreateDTO' }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+    delete:
+      tags: [04-用户端-我的商店]
+      summary: 删除商品
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /user/shop/products/{id}/offline:
+    put:
+      tags: [04-用户端-我的商店]
+      summary: 下架商品
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /user/shop/products/{id}/online:
+    put:
+      tags: [04-用户端-我的商店]
+      summary: 重新上架
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /user/shop/stats:
+    get:
+      tags: [04-用户端-我的商店]
+      summary: 我的商品统计
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/UserProductStatsVO' }
+
+  # ==================== 05 交易 ====================
+  /user/orders:
+    post:
+      tags: [05-用户端-交易]
+      summary: 申请交易
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OrderCreateDTO' }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultLong' } } } }
+    get:
+      tags: [05-用户端-交易]
+      summary: 订单列表
+      parameters:
+        - { name: type, in: query, schema: { type: string, enum: [buy, sell] } }
+        - { name: status, in: query, schema: { type: string } }
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageOrderVO' } } } }
+
+  /user/orders/{id}:
+    get:
+      tags: [05-用户端-交易]
+      summary: 订单详情
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/OrderVO' }
+
+  /user/orders/{id}/accept:
+    put:
+      tags: [05-用户端-交易]
+      summary: 卖家接受交易
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /user/orders/{id}/reject:
+    put:
+      tags: [05-用户端-交易]
+      summary: 卖家拒绝交易
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /user/orders/{id}/cancel:
+    put:
+      tags: [05-用户端-交易]
+      summary: 取消订单
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /user/orders/{id}/complete:
+    put:
+      tags: [05-用户端-交易]
+      summary: 买家确认完成
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /user/orders/{id}/pay:
+    post:
+      tags: [05-用户端-交易]
+      summary: 订单支付
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                payType: { type: string, enum: [wechat, alipay, offline] }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/PayVO' }
+
+  /user/orders/{id}/refund:
+    post:
+      tags: [05-用户端-交易]
+      summary: 申请退款
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  # ==================== 06 评价 ====================
+  /user/reviews:
+    post:
+      tags: [06-用户端-评价]
+      summary: 发表评价
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReviewCreateDTO' }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultLong' } } } }
+
+  /user/reviews/mine:
+    get:
+      tags: [06-用户端-评价]
+      summary: 我发出的评价
+      parameters:
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageReviewVO' } } } }
+
+  /user/reviews/received:
+    get:
+      tags: [06-用户端-评价]
+      summary: 我收到的评价
+      parameters:
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageReviewVO' } } } }
+
+  /user/reviews/product/{productId}:
+    get:
+      tags: [06-用户端-评价]
+      summary: 商品评价列表
+      security: []
+      parameters:
+        - { name: productId, in: path, required: true, schema: { type: integer, format: int64 } }
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageReviewVO' } } } }
+
+  /user/reviews/{id}/reply:
+    post:
+      tags: [06-用户端-评价]
+      summary: 回复评价
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content: { type: string }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  # ==================== 07 消息 ====================
+  /user/messages:
+    get:
+      tags: [07-用户端-消息]
+      summary: 消息列表
+      parameters:
+        - { name: type, in: query, schema: { type: string } }
+        - { name: isRead, in: query, schema: { type: boolean } }
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageMessageVO' } } } }
+
+  /user/messages/unread-count:
+    get:
+      tags: [07-用户端-消息]
+      summary: 未读消息数
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultLong' } } } }
+
+  /user/messages/{id}/read:
+    put:
+      tags: [07-用户端-消息]
+      summary: 标记已读
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /user/messages/read-all:
+    put:
+      tags: [07-用户端-消息]
+      summary: 全部已读
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /user/messages/{id}:
+    delete:
+      tags: [07-用户端-消息]
+      summary: 删除消息
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /user/announcements:
+    get:
+      tags: [07-用户端-消息]
+      summary: 公告列表
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageAnnouncementVO' } } } }
+
+  /user/announcements/{id}:
+    get:
+      tags: [07-用户端-消息]
+      summary: 公告详情
+      security: []
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/AnnouncementVO' }
+
+  # ==================== 08 私信 ====================
+  /user/chat/conversations:
+    post:
+      tags: [08-用户端-私信]
+      summary: 创建/获取会话
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ConversationCreateDTO' }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/ConversationVO' }
+    get:
+      tags: [08-用户端-私信]
+      summary: 会话列表
+      parameters:
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageConversationVO' } } } }
+
+  /user/chat/conversations/{id}/messages:
+    get:
+      tags: [08-用户端-私信]
+      summary: 历史消息（游标分页）
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+        - { name: lastId, in: query, schema: { type: integer, format: int64 } }
+        - { name: limit, in: query, schema: { type: integer, default: 20 } }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/ChatMessageVO' }
+
+  /user/chat/conversations/{id}/read:
+    put:
+      tags: [08-用户端-私信]
+      summary: 标记会话已读
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /user/chat/conversations/{id}:
+    delete:
+      tags: [08-用户端-私信]
+      summary: 删除会话
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  # ==================== 09 举报 ====================
+  /user/reports:
+    post:
+      tags: [09-用户端-举报]
+      summary: 提交举报
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReportCreateDTO' }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultLong' } } } }
+    get:
+      tags: [09-用户端-举报]
+      summary: 我的举报
+      parameters:
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageReportVO' } } } }
+
+  /user/reports/{id}:
+    get:
+      tags: [09-用户端-举报]
+      summary: 举报详情
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/ReportVO' }
+
+  /user/reports/{id}/appeal:
+    post:
+      tags: [09-用户端-举报]
+      summary: 提交申诉
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string }
+                images:
+                  type: array
+                  items: { type: string }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  # ==================== 10 AI客服 ====================
+  /user/ai/chat/sessions:
+    post:
+      tags: [10-用户端-AI客服]
+      summary: 创建会话
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/ChatSessionVO' }
+    get:
+      tags: [10-用户端-AI客服]
+      summary: 我的会话列表
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/ChatSessionVO' }
+
+  /user/ai/chat/sessions/{id}/messages:
+    get:
+      tags: [10-用户端-AI客服]
+      summary: 会话消息历史
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: '#/components/schemas/ChatMessageVO' }
+    post:
+      tags: [10-用户端-AI客服]
+      summary: 发送消息
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content: { type: string }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/ChatMessageVO' }
+
+  /user/ai/chat/sessions/{id}/transfer:
+    post:
+      tags: [10-用户端-AI客服]
+      summary: 转人工客服
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  /user/ai/chat/sessions/{id}/rate:
+    post:
+      tags: [10-用户端-AI客服]
+      summary: 满意度评价
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                score: { type: integer, minimum: 1, maximum: 5 }
+                comment: { type: string }
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/ResultVoid' } } } }
+
+  # ==================== 11 个人统计 ====================
+  /user/stats/overview:
+    get:
+      tags: [11-用户端-个人统计]
+      summary: 我的数据概览
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/UserOverviewVO' }
+
+  /user/stats/shop:
+    get:
+      tags: [11-用户端-个人统计]
+      summary: 我的商店统计
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/UserProductStatsVO' }
+
+  /user/stats/orders:
+    get:
+      tags: [11-用户端-个人统计]
+      summary: 我的交易统计
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/UserOrderStatsVO' }
+
+  /user/stats/reviews:
+    get:
+      tags: [11-用户端-个人统计]
+      summary: 我的评价统计
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/UserReviewStatsVO' }
+
+  /user/stats/credit:
+    get:
+      tags: [11-用户端-个人统计]
+      summary: 信用分流水
+      parameters:
+        - $ref: '#/components/parameters/PageNum'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200': { description: 成功, content: { application/json: { schema: { $ref: '#/components/schemas/PageCreditLogVO' } } } }
+
+  /user/stats/credit/trend:
+    get:
+      tags: [11-用户端-个人统计]
+      summary: 信用分趋势
+      parameters:
+        - { name: days, in: query, schema: { type: integer, default: 30 } }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/TrendVO' }
+
+  /user/stats/orders/trend:
+    get:
+      tags: [11-用户端-个人统计]
+      summary: 交易趋势
+      parameters:
+        - { name: type, in: query, schema: { type: string, enum: [buy, sell] } }
+        - { name: days, in: query, schema: { type: integer, default: 30 } }
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/TrendVO' }
+
+  # ==================== 12 文件 ====================
+  /user/files/upload:
+    post:
+      tags: [12-用户端-文件]
+      summary: 上传图片/文件
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/FileVO' }
+
+components:
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    PageNum:
+      name: pageNum
+      in: query
+      schema: { type: integer, default: 1 }
+    PageSize:
+      name: pageSize
+      in: query
+      schema: { type: integer, default: 10 }
+
+  schemas:
+
+    # ---------- 通用 ----------
+    Result:
+      type: object
+      properties:
+        code: { type: integer, example: 1 }
+        msg: { type: string }
+        data: { type: object }
+    ResultVoid:
+      type: object
+      properties:
+        code: { type: integer, example: 1 }
+        msg: { type: string }
+        data: { type: object, nullable: true }
+    ResultLong:
+      type: object
+      properties:
+        code: { type: integer, example: 1 }
+        msg: { type: string }
+        data: { type: integer, format: int64 }
+    Page:
+      type: object
+      properties:
+        total: { type: integer, format: int64 }
+        records: { type: array, items: { type: object } }
+
+    PageProductVO:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/Page'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items: { $ref: '#/components/schemas/ProductVO' }
+    PageOrderVO:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/Page'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items: { $ref: '#/components/schemas/OrderVO' }
+    PageReviewVO:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/Page'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items: { $ref: '#/components/schemas/ReviewVO' }
+    PageMessageVO:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/Page'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items: { $ref: '#/components/schemas/MessageVO' }
+    PageAnnouncementVO:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/Page'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items: { $ref: '#/components/schemas/AnnouncementVO' }
+    PageConversationVO:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/Page'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items: { $ref: '#/components/schemas/ConversationVO' }
+    PageReportVO:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/Page'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items: { $ref: '#/components/schemas/ReportVO' }
+    PageCreditLogVO:
+      allOf:
+        - $ref: '#/components/schemas/Result'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/Page'
+                - type: object
+                  properties:
+                    records:
+                      type: array
+                      items: { $ref: '#/components/schemas/CreditLogVO' }
+
+    # ---------- 认证 ----------
+    SendCodeDTO:
+      type: object
+      required: [phone]
+      properties:
+        phone: { type: string, pattern: '^1[3-9]\d{9}$', example: '13800138000' }
+    RegisterDTO:
+      type: object
+      required: [username, password, phone, code]
+      properties:
+        username: { type: string, minLength: 4, maxLength: 20 }
+        password: { type: string, minLength: 6, maxLength: 32 }
+        phone: { type: string, pattern: '^1[3-9]\d{9}$' }
+        code: { type: string }
+    LoginDTO:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string }
+        password: { type: string }
+    ResetPasswordDTO:
+      type: object
+      required: [phone, code, newPassword]
+      properties:
+        phone: { type: string, pattern: '^1[3-9]\d{9}$' }
+        code: { type: string }
+        newPassword: { type: string, minLength: 6, maxLength: 32 }
+    LoginVO:
+      type: object
+      properties:
+        token: { type: string }
+        userId: { type: integer, format: int64 }
+        username: { type: string }
+        nickname: { type: string }
+        avatar: { type: string }
+        role: { type: string }
+
+    # ---------- 用户 ----------
+    UserVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        username: { type: string }
+        nickname: { type: string }
+        avatar: { type: string }
+        phone: { type: string }
+        email: { type: string }
+        role: { type: string }
+        status: { type: string, enum: [normal, banned] }
+        certified: { type: integer }
+        creditScore: { type: integer }
+        createTime: { type: string, format: date-time }
+    UserUpdateDTO:
+      type: object
+      properties:
+        nickname: { type: string }
+        avatar: { type: string }
+        email: { type: string }
+        intro: { type: string }
+    PasswordUpdateDTO:
+      type: object
+      required: [oldPassword, newPassword]
+      properties:
+        oldPassword: { type: string }
+        newPassword: { type: string }
+    CertificationDTO:
+      type: object
+      required: [school, studentNo, realName]
+      properties:
+        school: { type: string }
+        studentNo: { type: string }
+        realName: { type: string }
+        cardImage: { type: string }
+    CertificationVO:
+      allOf:
+        - $ref: '#/components/schemas/CertificationDTO'
+        - type: object
+          properties:
+            id: { type: integer, format: int64 }
+            userId: { type: integer, format: int64 }
+            status: { type: string, enum: [pending, approved, rejected] }
+            reason: { type: string }
+            createTime: { type: string, format: date-time }
+    AddressDTO:
+      type: object
+      required: [receiver, phone, detail]
+      properties:
+        receiver: { type: string }
+        phone: { type: string }
+        region: { type: string }
+        detail: { type: string }
+        isDefault: { type: boolean }
+    AddressVO:
+      allOf:
+        - $ref: '#/components/schemas/AddressDTO'
+        - type: object
+          properties:
+            id: { type: integer, format: int64 }
+    SellerVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        nickname: { type: string }
+        avatar: { type: string }
+        creditScore: { type: integer }
+        certified: { type: integer }
+        productCount: { type: integer }
+        avgScore: { type: number }
+
+    # ---------- 商品 ----------
+    ProductCreateDTO:
+      type: object
+      required: [title, description, price, categoryId, images]
+      properties:
+        title: { type: string }
+        description: { type: string }
+        price: { type: number }
+        originalPrice: { type: number }
+        condition: { type: string, enum: [new, almost_new, good, normal] }
+        categoryId: { type: integer, format: int64 }
+        tradeType: { type: string, enum: [face, express, self_pickup] }
+        tradePlace: { type: string }
+        images:
+          type: array
+          items: { type: string }
+    ProductVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        title: { type: string }
+        price: { type: number }
+        cover: { type: string }
+        condition: { type: string }
+        categoryId: { type: integer, format: int64 }
+        categoryName: { type: string }
+        status: { type: string }
+        sellerId: { type: integer, format: int64 }
+        sellerNickname: { type: string }
+        viewCount: { type: integer }
+        favoriteCount: { type: integer }
+        createTime: { type: string, format: date-time }
+    ProductDetailVO:
+      allOf:
+        - $ref: '#/components/schemas/ProductVO'
+        - type: object
+          properties:
+            description: { type: string }
+            originalPrice: { type: number }
+            tradeType: { type: string }
+            tradePlace: { type: string }
+            images:
+              type: array
+              items: { type: string }
+            seller: { $ref: '#/components/schemas/SellerVO' }
+    CategoryVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        parentId: { type: integer, format: int64 }
+        sort: { type: integer }
+
+    # ---------- 订单 ----------
+    OrderCreateDTO:
+      type: object
+      required: [productId]
+      properties:
+        productId: { type: integer, format: int64 }
+        remark: { type: string }
+        tradePlace: { type: string }
+        appointmentTime: { type: string, format: date-time }
+    OrderVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        orderNo: { type: string }
+        productId: { type: integer, format: int64 }
+        productTitle: { type: string }
+        productCover: { type: string }
+        buyerId: { type: integer, format: int64 }
+        buyerNickname: { type: string }
+        sellerId: { type: integer, format: int64 }
+        sellerNickname: { type: string }
+        amount: { type: number }
+        status: { type: string }
+        tradeType: { type: string }
+        tradePlace: { type: string }
+        appointmentTime: { type: string, format: date-time }
+        createTime: { type: string, format: date-time }
+    PayVO:
+      type: object
+      properties:
+        orderNo: { type: string }
+        payType: { type: string }
+        payUrl: { type: string }
+
+    # ---------- 评价 ----------
+    ReviewCreateDTO:
+      type: object
+      required: [orderId, score]
+      properties:
+        orderId: { type: integer, format: int64 }
+        score: { type: integer, minimum: 1, maximum: 5 }
+        content: { type: string }
+        images:
+          type: array
+          items: { type: string }
+    ReviewVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        orderId: { type: integer, format: int64 }
+        fromUserId: { type: integer, format: int64 }
+        fromUserNickname: { type: string }
+        toUserId: { type: integer, format: int64 }
+        score: { type: integer }
+        content: { type: string }
+        images:
+          type: array
+          items: { type: string }
+        reply: { type: string }
+        createTime: { type: string, format: date-time }
+
+    # ---------- 消息 ----------
+    MessageVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        type: { type: string }
+        title: { type: string }
+        content: { type: string }
+        isRead: { type: boolean }
+        bizId: { type: integer, format: int64 }
+        createTime: { type: string, format: date-time }
+    AnnouncementVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        title: { type: string }
+        content: { type: string }
+        createTime: { type: string, format: date-time }
+
+    # ---------- 私信 ----------
+    ConversationCreateDTO:
+      type: object
+      required: [targetUserId]
+      properties:
+        targetUserId: { type: integer, format: int64 }
+        productId: { type: integer, format: int64 }
+    ConversationVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        targetUserId: { type: integer, format: int64 }
+        targetNickname: { type: string }
+        targetAvatar: { type: string }
+        lastMessage: { type: string }
+        lastMessageTime: { type: string, format: date-time }
+        unreadCount: { type: integer }
+    ChatMessageVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        conversationId: { type: integer, format: int64 }
+        fromUserId: { type: integer, format: int64 }
+        toUserId: { type: integer, format: int64 }
+        content: { type: string }
+        type: { type: string }
+        status: { type: string }
+        createTime: { type: string, format: date-time }
+
+    # ---------- 举报 ----------
+    ReportCreateDTO:
+      type: object
+      required: [targetType, targetId, reason]
+      properties:
+        targetType: { type: string, enum: [product, user, order] }
+        targetId: { type: integer, format: int64 }
+        reason: { type: string }
+        description: { type: string }
+        images:
+          type: array
+          items: { type: string }
+    ReportVO:
+      allOf:
+        - $ref: '#/components/schemas/ReportCreateDTO'
+        - type: object
+          properties:
+            id: { type: integer, format: int64 }
+            reporterId: { type: integer, format: int64 }
+            status: { type: string, enum: [pending, valid, invalid] }
+            action: { type: string }
+            handleReason: { type: string }
+            createTime: { type: string, format: date-time }
+
+    # ---------- AI客服 ----------
+    ChatSessionVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        userId: { type: integer, format: int64 }
+        title: { type: string }
+        status: { type: string, enum: [ai, human, closed] }
+        lastMessage: { type: string }
+        lastMessageTime: { type: string, format: date-time }
+        createTime: { type: string, format: date-time }
+
+    # ---------- 统计 ----------
+    UserOverviewVO:
+      type: object
+      properties:
+        productTotal: { type: integer }
+        productOnSale: { type: integer }
+        productSold: { type: integer }
+        orderBuyTotal: { type: integer }
+        orderSellTotal: { type: integer }
+        orderPending: { type: integer }
+        creditScore: { type: integer }
+        reviewCount: { type: integer }
+        avgScore: { type: number }
+        favoriteCount: { type: integer }
+        unreadMessage: { type: integer, format: int64 }
+    UserProductStatsVO:
+      type: object
+      properties:
+        total: { type: integer }
+        onSale: { type: integer }
+        reserved: { type: integer }
+        sold: { type: integer }
+        offline: { type: integer }
+        auditing: { type: integer }
+        rejected: { type: integer }
+        viewTotal: { type: integer, format: int64 }
+        favoriteTotal: { type: integer, format: int64 }
+    UserOrderStatsVO:
+      type: object
+      properties:
+        buyTotal: { type: integer }
+        sellTotal: { type: integer }
+        buyCompleted: { type: integer }
+        sellCompleted: { type: integer }
+        buyAmount: { type: number }
+        sellAmount: { type: number }
+        pending: { type: integer }
+        refunding: { type: integer }
+        dispute: { type: integer }
+    UserReviewStatsVO:
+      type: object
+      properties:
+        receivedTotal: { type: integer }
+        sentTotal: { type: integer }
+        avgScore: { type: number }
+        score5Count: { type: integer }
+        score4Count: { type: integer }
+        score3Count: { type: integer }
+        score2Count: { type: integer }
+        score1Count: { type: integer }
+        goodRate: { type: number }
+    CreditLogVO:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        delta: { type: integer }
+        beforeScore: { type: integer }
+        afterScore: { type: integer }
+        reason: { type: string }
+        bizType: { type: string }
+        bizId: { type: integer, format: int64 }
+        createTime: { type: string, format: date-time }
+    TrendVO:
+      type: object
+      properties:
+        dates:
+          type: array
+          items: { type: string, format: date }
+        values:
+          type: array
+          items: { type: integer, format: int64 }
+
+    # ---------- 文件 ----------
+    FileVO:
+      type: object
+      properties:
+        url: { type: string }
+        name: { type: string }
+        size: { type: integer, format: int64 }
