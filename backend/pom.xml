@@ -28,7 +28,30 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <!-- 版本统一管理：模仿 sky-take-out -->
+        <!-- SonarQube 配置 -->
+        <sonar.host.url>http://localhost:9000</sonar.host.url>
+        <sonar.projectKey>campus-mart-backend</sonar.projectKey>
+        <sonar.projectName>Campus Mart Backend</sonar.projectName>
+        <sonar.java.source>17</sonar.java.source>
+        <sonar.java.target>17</sonar.java.target>
+
+        <!-- 多模块 JaCoCo 报告路径，使用绝对路径确保扫描器能找到 -->
+        <sonar.coverage.jacoco.xmlReportPaths>
+            ${maven.multiModuleProjectDirectory}/mart-server/target/site/jacoco/jacoco.xml,
+            ${maven.multiModuleProjectDirectory}/mart-common/target/site/jacoco/jacoco.xml,
+            ${maven.multiModuleProjectDirectory}/mart-pojo/target/site/jacoco/jacoco.xml
+        </sonar.coverage.jacoco.xmlReportPaths>
+
+        <!-- 排除不需要扫描的内容 -->
+        <sonar.exclusions>
+            **/target/**,
+            **/.idea/**,
+            **/*.md,
+            **/mvnw,
+            **/mvnw.cmd
+        </sonar.exclusions>
+
+        <!-- 版本统一管理 -->
         <mybatis.spring>3.0.4</mybatis.spring>
         <lombok>1.18.34</lombok>
         <fastjson>2.0.53</fastjson>
@@ -43,7 +66,6 @@
         <poi>5.3.0</poi>
         <mysql>8.4.0</mysql>
         <wechatpay>0.5.0</wechatpay>
-        <fastjson>1.2.76</fastjson>
         <hutool>5.8.27</hutool>
     </properties>
 
@@ -110,7 +132,7 @@
                 <version>${aspectj}</version>
             </dependency>
 
-            <!-- JJWT（0.12.x 是 Spring Boot 3 对应版本，注意 API 和 0.9.1 完全不同） -->
+            <!-- JJWT（0.12.x 是 Spring Boot 3 对应版本） -->
             <dependency>
                 <groupId>io.jsonwebtoken</groupId>
                 <artifactId>jjwt-api</artifactId>
@@ -136,7 +158,7 @@
                 <version>${aliyun.sdk.oss}</version>
             </dependency>
 
-            <!-- JAXB（Java 17 需要，且已迁到 jakarta） -->
+            <!-- JAXB（Java 17 需要） -->
             <dependency>
                 <groupId>jakarta.xml.bind</groupId>
                 <artifactId>jakarta.xml.bind-api</artifactId>
@@ -169,5 +191,47 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.sonarsource.scanner.maven</groupId>
+                    <artifactId>sonar-maven-plugin</artifactId>
+                    <version>5.5.0.6356</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <configuration>
+                        <argLine>@{argLine}</argLine>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

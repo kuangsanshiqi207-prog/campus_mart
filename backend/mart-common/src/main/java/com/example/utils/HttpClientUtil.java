@@ -1,6 +1,7 @@
 package com.example.utils;
 
 import com.alibaba.fastjson.JSONObject;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -23,157 +24,110 @@ import java.util.Map;
 /**
  * Http工具类
  */
+@Slf4j
 public class HttpClientUtil {
 
-    static final  int TIMEOUT_MSEC = 5 * 1000;
+    private static final int TIMEOUT_MSEC = 5 * 1000;
+    private static final String UTF_8 = "UTF-8";
+
+    private HttpClientUtil() {
+        // 工具类私有构造，防止实例化
+    }
 
     /**
      * 发送GET方式请求
-     * @param url
-     * @param paramMap
-     * @return
      */
-    public static String doGet(String url,Map<String,String> paramMap){
-        // 创建Httpclient对象
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-
+    public static String doGet(String url, Map<String, String> paramMap) {
         String result = "";
-        CloseableHttpResponse response = null;
-
-        try{
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             URIBuilder builder = new URIBuilder(url);
-            if(paramMap != null){
-                for (String key : paramMap.keySet()) {
-                    builder.addParameter(key,paramMap.get(key));
+            if (paramMap != null) {
+                for (Map.Entry<String, String> entry : paramMap.entrySet()) {
+                    builder.addParameter(entry.getKey(), entry.getValue());
                 }
             }
             URI uri = builder.build();
-
-            //创建GET请求
             HttpGet httpGet = new HttpGet(uri);
 
-            //发送请求
-            response = httpClient.execute(httpGet);
-
-            //判断响应状态
-            if(response.getStatusLine().getStatusCode() == 200){
-                result = EntityUtils.toString(response.getEntity(),"UTF-8");
+            try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
+                if (response != null && response.getStatusLine().getStatusCode() == 200) {
+                    result = EntityUtils.toString(response.getEntity(), UTF_8);
+                }
             }
-        }catch (Exception e){
-            e.printStackTrace();
-        }finally {
-            try {
-                response.close();
-                httpClient.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        } catch (Exception e) {
+            log.error("GET请求失败, url: {}", url, e);
         }
-
         return result;
     }
 
     /**
      * 发送POST方式请求
-     * @param url
-     * @param paramMap
-     * @return
-     * @throws IOException
      */
     public static String doPost(String url, Map<String, String> paramMap) throws IOException {
-        // 创建Httpclient对象
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-        CloseableHttpResponse response = null;
         String resultString = "";
-
-        try {
-            // 创建Http Post请求
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpPost httpPost = new HttpPost(url);
 
-            // 创建参数列表
             if (paramMap != null) {
-                List<NameValuePair> paramList = new ArrayList();
+                List<NameValuePair> paramList = new ArrayList<>();
                 for (Map.Entry<String, String> param : paramMap.entrySet()) {
                     paramList.add(new BasicNameValuePair(param.getKey(), param.getValue()));
                 }
-                // 模拟表单
-                UrlEncodedFormEntity entity = new UrlEncodedFormEntity(paramList);
+                UrlEncodedFormEntity entity = new UrlEncodedFormEntity(paramList, UTF_8);
                 httpPost.setEntity(entity);
             }
 
             httpPost.setConfig(builderRequestConfig());
 
-            // 执行http请求
-            response = httpClient.execute(httpPost);
-
-            resultString = EntityUtils.toString(response.getEntity(), "UTF-8");
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            try {
-                response.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+            try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
+                if (response != null) {
+                    resultString = EntityUtils.toString(response.getEntity(), UTF_8);
+                }
             }
+        } catch (IOException e) {
+            log.error("POST请求失败, url: {}", url, e);
+            throw e;
         }
-
         return resultString;
     }
 
     /**
-     * 发送POST方式请求
-     * @param url
-     * @param paramMap
-     * @return
-     * @throws IOException
+     * 发送POST方式请求（JSON格式）
      */
     public static String doPost4Json(String url, Map<String, String> paramMap) throws IOException {
-        // 创建Httpclient对象
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-        CloseableHttpResponse response = null;
         String resultString = "";
-
-        try {
-            // 创建Http Post请求
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpPost httpPost = new HttpPost(url);
 
             if (paramMap != null) {
-                //构造json格式数据
                 JSONObject jsonObject = new JSONObject();
                 for (Map.Entry<String, String> param : paramMap.entrySet()) {
-                    jsonObject.put(param.getKey(),param.getValue());
+                    jsonObject.put(param.getKey(), param.getValue());
                 }
-                StringEntity entity = new StringEntity(jsonObject.toString(),"utf-8");
-                //设置请求编码
-                entity.setContentEncoding("utf-8");
-                //设置数据类型
+                StringEntity entity = new StringEntity(jsonObject.toString(), UTF_8);
+                entity.setContentEncoding(UTF_8);
                 entity.setContentType("application/json");
                 httpPost.setEntity(entity);
             }
 
             httpPost.setConfig(builderRequestConfig());
 
-            // 执行http请求
-            response = httpClient.execute(httpPost);
-
-            resultString = EntityUtils.toString(response.getEntity(), "UTF-8");
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            try {
-                response.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+            try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
+                if (response != null) {
+                    resultString = EntityUtils.toString(response.getEntity(), UTF_8);
+                }
             }
+        } catch (IOException e) {
+            log.error("POST JSON请求失败, url: {}", url, e);
+            throw e;
         }
-
         return resultString;
     }
+
     private static RequestConfig builderRequestConfig() {
         return RequestConfig.custom()
                 .setConnectTimeout(TIMEOUT_MSEC)
                 .setConnectionRequestTimeout(TIMEOUT_MSEC)
                 .setSocketTimeout(TIMEOUT_MSEC).build();
     }
-
 }
