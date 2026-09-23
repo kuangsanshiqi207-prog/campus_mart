@@ -59,3 +59,16 @@ knife4j:
   enable: true
   setting:
     language: zh_cn
+
+# ==================== 文件上传 ====================
+file:
+  storage-type: aliyun-oss
+  local:
+    base-path: ./uploads
+    base-url: http://localhost:8080/uploads
+# ==================== 阿里云OSS上传 ====================
+alioss:
+  endpoint: oss-cn-hangzhou.aliyuncs.com
+  access-key-id: 你的AccessKeyId
+  access-key-secret: 你的AccessKeySecret
+  bucket-name: 你的Bucket名

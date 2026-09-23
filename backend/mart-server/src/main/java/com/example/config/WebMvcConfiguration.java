@@ -5,6 +5,7 @@ import com.example.interceptor.JwtTokenUserInterceptor;
 import com.example.json.JacksonObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -58,6 +59,11 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
     protected void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/doc.html").addResourceLocations("classpath:/META-INF/resources/");
         registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
+
+        // 只在本地存储时生效，OSS 模式下这个配置无害
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:" + System.getProperty("user.dir") + "/" + uploadPath + "/");
+        log.info("静态资源映射 /uploads/** -> {}", uploadPath);
     }
 
     protected void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
@@ -66,4 +72,9 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
         converter.setObjectMapper(new JacksonObjectMapper());
         converters.add(0,converter);
     }
+
+    @Value("${campus.file.local.base-path:./uploads}")
+    private String uploadPath;
+
+    // ... 拦截器注册
 }

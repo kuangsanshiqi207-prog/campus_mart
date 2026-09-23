@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.common.FileMapper">
+
+    <sql id="BaseColumns">
+        id, user_id, url, original_name, file_size, content_type,
+        status, create_time, deleted
+    </sql>
+
+    <select id="getById" resultType="com.example.entity.File">
+        SELECT <include refid="BaseColumns"/>
+        FROM file
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.File">
+        INSERT INTO file (
+            id, user_id, url, original_name, file_size, content_type,
+            status, create_time, deleted
+        ) VALUES (
+                     #{id}, #{userId}, #{url}, #{originalName}, #{fileSize}, #{contentType},
+                     #{status}, #{createTime}, 0
+                 )
+    </insert>
+
+    <update id="markUsed">
+        UPDATE file
+        SET status = 'used'
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+</mapper>

@@ -37,6 +37,16 @@ campus:
   sms:
     code-length: ${sms.code-length}
     expire-minutes: ${sms.expire-minutes}
+  file:
+    storage-type: ${file.storage-type}
+    local:
+      base-path: ${file.local.base-path}
+      base-url: ${file.local.base-url}
+  alioss:
+    endpoint: ${alioss.endpoint}
+    access-key-id: ${alioss.access-key-id}
+    access-key-secret: ${alioss.access-key-secret}
+    bucket-name: ${alioss.bucket-name}
 
 # ==================== MyBatis ====================
 mybatis:
