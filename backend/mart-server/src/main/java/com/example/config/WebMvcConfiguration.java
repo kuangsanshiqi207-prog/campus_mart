@@ -45,7 +45,9 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
                         "/user/auth/register",
                         "/user/auth/login",
                         "/user/auth/send-code",
-                        "/user/auth/reset-password"
+                        "/user/auth/reset-password",
+                        "/user/market/products/**",
+                        "/user/market/categories"
                 );
     }
 

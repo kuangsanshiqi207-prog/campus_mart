@@ -48,4 +48,10 @@ public class MessageConstant {
     public static final String ADDRESS_NOT_FOUND = "地址不存在";
     public static final String ADDRESS_NO_PERMISSION = "无权操作该地址";
 
+    // ===== 商品 =====
+    public static final String PRODUCT_NOT_FOUND = "商品不存在";
+    public static final String PRODUCT_OFFLINE = "商品已下架";
+    public static final String PRODUCT_ALREADY_FAVORITED = "已收藏该商品";
+    public static final String PRODUCT_NOT_FAVORITED = "未收藏该商品";
+
 }

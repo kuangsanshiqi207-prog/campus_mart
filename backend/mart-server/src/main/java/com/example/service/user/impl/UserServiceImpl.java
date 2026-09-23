@@ -1,4 +1,4 @@
-package com.example.service.impl.user;
+package com.example.service.user.impl;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;

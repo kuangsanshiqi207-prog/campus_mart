@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.product.FavoriteMapper">
+
+    <select id="getByUserAndProduct" resultType="com.example.entity.Favorite">
+        SELECT id, user_id, product_id, create_time
+        FROM favorite
+        WHERE user_id = #{userId} AND product_id = #{productId}
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.Favorite">
+        INSERT INTO favorite (id, user_id, product_id, create_time)
+        VALUES (#{id}, #{userId}, #{productId}, #{createTime})
+    </insert>
+
+    <delete id="deleteByUserAndProduct">
+        DELETE FROM favorite
+        WHERE user_id = #{userId} AND product_id = #{productId}
+    </delete>
+
+    <select id="listByUserId" resultType="com.example.vo.product.ProductVO">
+        SELECT
+            p.id,
+            p.title,
+            p.price,
+            p.original_price,
+            p.quality,
+            p.category_id,
+            c.name AS category_name,
+            p.status,
+            p.seller_id,
+            u.nickname AS seller_nickname,
+            p.view_count,
+            p.favorite_count,
+            p.create_time,
+            (SELECT pi.url FROM product_image pi
+             WHERE pi.product_id = p.id
+             ORDER BY pi.sort ASC, pi.id ASC
+             LIMIT 1) AS cover
+        FROM favorite f
+                 INNER JOIN product p ON f.product_id = p.id AND p.deleted = 0
+                 LEFT JOIN category c ON p.category_id = c.id AND c.deleted = 0
+                 LEFT JOIN user u ON p.seller_id = u.id AND u.deleted = 0
+        WHERE f.user_id = #{userId}
+        ORDER BY f.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByUserId" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM favorite f
+                 INNER JOIN product p ON f.product_id = p.id AND p.deleted = 0
+        WHERE f.user_id = #{userId}
+    </select>
+
+</mapper>

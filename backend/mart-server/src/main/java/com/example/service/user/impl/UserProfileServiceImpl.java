@@ -1,4 +1,4 @@
-package com.example.service.impl.user;
+package com.example.service.user.impl;
 
 import cn.hutool.core.util.IdUtil;
 import com.example.constant.MessageConstant;
@@ -35,7 +35,6 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
