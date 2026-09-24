@@ -11,4 +11,14 @@ public interface CategoryMapper {
     List<Category> listEnabled();
 
     Category getById(Long id);
+
+    List<Category> listAll();
+
+    void insert(Category category);
+
+    void update(Category category);
+
+    void deleteById(Long id);
+
+    Integer countProductsByCategory(Long categoryId);
 }

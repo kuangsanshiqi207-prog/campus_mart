@@ -20,4 +20,39 @@
         WHERE id = #{id} AND deleted = 0
     </select>
 
+    <select id="listAll" resultType="com.example.entity.Category">
+        SELECT id, name, parent_id, sort, status, create_time, update_time, deleted
+        FROM category
+        WHERE deleted = 0
+        ORDER BY sort ASC, id ASC
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.Category">
+        INSERT INTO category (id, name, parent_id, sort, status, create_time, update_time, deleted)
+        VALUES (#{id}, #{name}, #{parentId}, #{sort}, #{status}, #{createTime}, #{updateTime}, 0)
+    </insert>
+
+    <update id="update" parameterType="com.example.entity.Category">
+        UPDATE category
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="parentId != null">parent_id = #{parentId},</if>
+            <if test="sort != null">sort = #{sort},</if>
+            <if test="status != null">status = #{status},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE category SET deleted = 1, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <select id="countProductsByCategory" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM product
+        WHERE category_id = #{categoryId} AND deleted = 0
+    </select>
+
 </mapper>

@@ -1,5 +1,6 @@
 package com.example.mapper.product;
 
+import com.example.dto.adminProduct.AdminProductQueryDTO;
 import com.example.dto.product.ProductQueryDTO;
 import com.example.entity.Product;
 import com.example.vo.product.ProductVO;
@@ -56,4 +57,16 @@ public interface ProductMapper {
                    @Param("status") String status);
 
     UserProductStatsVO getMyStats(Long sellerId);
+
+    List<Product> listAdmin(@Param("query") AdminProductQueryDTO query,
+                            @Param("offset") Integer offset,
+                            @Param("limit") Integer limit);
+
+    Long countAdmin(@Param("query") AdminProductQueryDTO query);
+
+    void updateAudit(@Param("id") Long id,
+                     @Param("auditStatus") String auditStatus,
+                     @Param("auditReason") String auditReason);
+
+    void forceOffline(@Param("id") Long id);
 }

@@ -248,4 +248,54 @@
         WHERE deleted = 0 AND seller_id = #{sellerId}
     </select>
 
+    <sql id="AdminQueryCondition">
+        <where>
+            p.deleted = 0
+            <if test="query.keyword != null and query.keyword != ''">
+                AND p.title LIKE CONCAT('%', #{query.keyword}, '%')
+            </if>
+            <if test="query.status != null and query.status != ''">
+                AND p.status = #{query.status}
+            </if>
+            <if test="query.auditStatus != null and query.auditStatus != ''">
+                AND p.audit_status = #{query.auditStatus}
+            </if>
+            <if test="query.categoryId != null">
+                AND p.category_id = #{query.categoryId}
+            </if>
+        </where>
+    </sql>
+
+    <select id="listAdmin" resultType="com.example.entity.Product">
+        SELECT
+        p.id, p.seller_id, p.category_id, p.title, p.description,
+        p.price, p.original_price, p.quality, p.trade_type, p.trade_place,
+        p.status, p.audit_status, p.audit_reason,
+        p.view_count, p.favorite_count, p.create_time, p.update_time, p.deleted
+        FROM product p
+        <include refid="AdminQueryCondition"/>
+        ORDER BY p.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countAdmin" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM product p
+        <include refid="AdminQueryCondition"/>
+    </select>
+
+    <update id="updateAudit">
+        UPDATE product
+        SET audit_status = #{auditStatus},
+            audit_reason = #{auditReason},
+            update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="forceOffline">
+        UPDATE product
+        SET status = 'offline', update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
 </mapper>
