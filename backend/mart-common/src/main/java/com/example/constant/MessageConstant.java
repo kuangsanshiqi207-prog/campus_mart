@@ -21,8 +21,6 @@ public class MessageConstant {
     public static final String DISH_ON_SALE = "起售中的菜品不能删除";
     public static final String SETMEAL_ON_SALE = "起售中的套餐不能删除";
     public static final String DISH_BE_RELATED_BY_SETMEAL = "当前菜品关联了套餐,不能删除";
-    public static final String ORDER_STATUS_ERROR = "订单状态错误";
-    public static final String ORDER_NOT_FOUND = "订单不存在";
 
 
     // ===== 认证模块新增 =====
@@ -64,5 +62,15 @@ public class MessageConstant {
     public static final String PRODUCT_AUDIT_NOT_PASSED = "商品审核未通过，不能上架";
     public static final String CATEGORY_NOT_FOUND = "分类不存在";
     public static final String CATEGORY_DISABLED = "分类已禁用";
+
+    // ===== 订单 =====
+    public static final String ORDER_NOT_FOUND = "订单不存在";
+    public static final String ORDER_NO_PERMISSION = "无权操作该订单";
+    public static final String ORDER_STATUS_ERROR = "订单状态错误";
+    public static final String ORDER_PRODUCT_NOT_AVAILABLE = "商品已下架或已被预订";
+    public static final String ORDER_CANNOT_BUY_OWN = "不能购买自己的商品";
+    public static final String ORDER_ALREADY_EXISTS = "该商品已有待处理的订单";
+    public static final String ORDER_BUYER_NOT_MATCH = "只有买家可以确认完成";
+    public static final String ORDER_SELLER_NOT_MATCH = "只有卖家可以操作";
 
 }

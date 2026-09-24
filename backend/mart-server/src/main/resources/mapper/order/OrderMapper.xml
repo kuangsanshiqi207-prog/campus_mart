@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.order.OrderMapper">
+
+    <sql id="BaseColumns">
+        id, order_no, product_id, buyer_id, seller_id, amount, status,
+        trade_type, trade_place, appointment_time, remark,
+        reject_reason, cancel_reason,
+        create_time, update_time, completed_time, deleted
+    </sql>
+
+    <sql id="VOColumns">
+        o.id,
+        o.order_no,
+        o.product_id,
+        p.title AS product_title,
+        (SELECT pi.url FROM product_image pi
+         WHERE pi.product_id = p.id
+         ORDER BY pi.sort ASC, pi.id ASC
+         LIMIT 1) AS product_cover,
+        o.buyer_id,
+        bu.nickname AS buyer_nickname,
+        o.seller_id,
+        su.nickname AS seller_nickname,
+        o.amount,
+        o.status,
+        o.trade_type,
+        o.trade_place,
+        o.appointment_time,
+        o.remark,
+        o.reject_reason,
+        o.cancel_reason,
+        o.create_time,
+        o.completed_time
+    </sql>
+
+    <select id="getById" resultType="com.example.entity.Order">
+        SELECT <include refid="BaseColumns"/>
+        FROM `order`
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="getByOrderNo" resultType="com.example.entity.Order">
+        SELECT <include refid="BaseColumns"/>
+        FROM `order`
+        WHERE order_no = #{orderNo} AND deleted = 0
+    </select>
+
+    <select id="getPendingByProductId" resultType="com.example.entity.Order">
+        SELECT <include refid="BaseColumns"/>
+        FROM `order`
+        WHERE product_id = #{productId}
+        AND status IN ('pending', 'accepted')
+        AND deleted = 0
+        LIMIT 1
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.Order">
+        INSERT INTO `order` (
+            id, order_no, product_id, buyer_id, seller_id, amount, status,
+            trade_type, trade_place, appointment_time, remark,
+            create_time, update_time, deleted
+        ) VALUES (
+                     #{id}, #{orderNo}, #{productId}, #{buyerId}, #{sellerId}, #{amount}, #{status},
+                     #{tradeType}, #{tradePlace}, #{appointmentTime}, #{remark},
+                     #{createTime}, #{updateTime}, 0
+                 )
+    </insert>
+
+    <update id="updateStatus">
+        UPDATE `order`
+        SET status = #{status}, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="updateRejectReason">
+        UPDATE `order`
+        SET status = #{status}, reject_reason = #{rejectReason}, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="updateCancelReason">
+        UPDATE `order`
+        SET status = #{status}, cancel_reason = #{cancelReason}, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="updateCompleted">
+        UPDATE `order`
+        SET status = #{status}, completed_time = NOW(), update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <select id="getOrderVOById" resultType="com.example.vo.order.OrderVO">
+        SELECT <include refid="VOColumns"/>
+        FROM `order` o
+        LEFT JOIN product p ON o.product_id = p.id
+        LEFT JOIN user bu ON o.buyer_id = bu.id
+        LEFT JOIN user su ON o.seller_id = su.id
+        WHERE o.id = #{id} AND o.deleted = 0
+    </select>
+
+    <select id="listByBuyer" resultType="com.example.vo.order.OrderVO">
+        SELECT <include refid="VOColumns"/>
+        FROM `order` o
+        LEFT JOIN product p ON o.product_id = p.id
+        LEFT JOIN user bu ON o.buyer_id = bu.id
+        LEFT JOIN user su ON o.seller_id = su.id
+        WHERE o.deleted = 0 AND o.buyer_id = #{buyerId}
+        <if test="status != null and status != ''">
+            AND o.status = #{status}
+        </if>
+        ORDER BY o.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByBuyer" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM `order`
+        WHERE deleted = 0 AND buyer_id = #{buyerId}
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+    </select>
+
+    <select id="listBySeller" resultType="com.example.vo.order.OrderVO">
+        SELECT <include refid="VOColumns"/>
+        FROM `order` o
+        LEFT JOIN product p ON o.product_id = p.id
+        LEFT JOIN user bu ON o.buyer_id = bu.id
+        LEFT JOIN user su ON o.seller_id = su.id
+        WHERE o.deleted = 0 AND o.seller_id = #{sellerId}
+        <if test="status != null and status != ''">
+            AND o.status = #{status}
+        </if>
+        ORDER BY o.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countBySeller" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM `order`
+        WHERE deleted = 0 AND seller_id = #{sellerId}
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+    </select>
+
+</mapper>
