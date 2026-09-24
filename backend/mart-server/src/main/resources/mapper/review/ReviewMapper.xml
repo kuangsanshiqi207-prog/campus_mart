@@ -129,4 +129,39 @@
         WHERE deleted = 0 AND to_user_id = #{userId}
     </select>
 
+    <sql id="AdminReviewQueryCondition">
+        <where>
+            r.deleted = 0
+            <if test="query.keyword != null and query.keyword != ''">
+                AND r.content LIKE CONCAT('%', #{query.keyword}, '%')
+            </if>
+            <if test="query.score != null">
+                AND r.score = #{query.score}
+            </if>
+        </where>
+    </sql>
+
+    <select id="listAdmin" resultType="com.example.entity.Review">
+        SELECT
+        r.id, r.order_id, r.product_id, r.from_user_id, r.to_user_id,
+        r.score, r.content, r.images, r.reply, r.reply_time,
+        r.create_time, r.update_time, r.deleted
+        FROM review r
+        <include refid="AdminReviewQueryCondition"/>
+        ORDER BY r.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countAdmin" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM review r
+        <include refid="AdminReviewQueryCondition"/>
+    </select>
+
+    <update id="deleteById">
+        UPDATE review
+        SET deleted = 1, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
 </mapper>

@@ -1,5 +1,6 @@
 package com.example.mapper.review;
 
+import com.example.dto.reviewManage.AdminReviewQueryDTO;
 import com.example.entity.Review;
 import com.example.vo.review.ReviewVO;
 import org.apache.ibatis.annotations.Mapper;
@@ -39,4 +40,12 @@ public interface ReviewMapper {
                                 @Param("limit") Integer limit);
 
     Long countByToUser(Long userId);
+
+    List<Review> listAdmin(@Param("query") AdminReviewQueryDTO query,
+                           @Param("offset") Integer offset,
+                           @Param("limit") Integer limit);
+
+    Long countAdmin(@Param("query") AdminReviewQueryDTO query);
+
+    void deleteById(@Param("id") Long id);
 }
