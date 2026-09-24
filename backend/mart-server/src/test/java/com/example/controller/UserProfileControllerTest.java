@@ -173,7 +173,8 @@ class UserProfileControllerTest {
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(1))
-                .andExpect(jsonPath("$.data").isNumber());
+                .andExpect(jsonPath("$.data").isString())            // ← 由 isNumber 改 isString
+                .andExpect(jsonPath("$.data").isNotEmpty());
     }
 
     @Test
@@ -229,7 +230,8 @@ class UserProfileControllerTest {
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(1))
-                .andExpect(jsonPath("$.data").isNumber());
+                .andExpect(jsonPath("$.data").isString())            // ← 由 isNumber 改 isString
+                .andExpect(jsonPath("$.data").isNotEmpty());
     }
 
     @Test

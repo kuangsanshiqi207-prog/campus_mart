@@ -86,7 +86,8 @@ public class MessageControllerTest {
                         .header("Authorization", token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(1))
-                .andExpect(jsonPath("$.data").isNumber());
+                .andExpect(jsonPath("$.data").isString())
+                .andExpect(jsonPath("$.data").isNotEmpty());
     }
 
     // ==================== 标记已读 ====================

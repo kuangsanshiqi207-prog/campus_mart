@@ -69,7 +69,8 @@ class FileControllerTest {
                         .header("Authorization", token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(1))
-                .andExpect(jsonPath("$.data.fileId").isNumber())
+                .andExpect(jsonPath("$.data.fileId").isString())
+                .andExpect(jsonPath("$.data.fileId").isNotEmpty())
                 .andExpect(jsonPath("$.data.url").exists())
                 .andExpect(jsonPath("$.data.name").value("test.jpg"));
     }

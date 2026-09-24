@@ -66,7 +66,8 @@ public class OrderControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(1))
                 .andExpect(jsonPath("$.data").exists())
-                .andExpect(jsonPath("$.data.total").isNumber())
+                .andExpect(jsonPath("$.data.total").isString())      // ← 由 isNumber 改 isString
+                .andExpect(jsonPath("$.data.records").isArray())
                 .andExpect(jsonPath("$.data.records").isArray());
     }
 
