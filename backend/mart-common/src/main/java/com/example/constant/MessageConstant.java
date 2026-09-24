@@ -85,4 +85,15 @@ public class MessageConstant {
     public static final String MESSAGE_NOT_FOUND = "消息不存在";
     public static final String MESSAGE_NO_PERMISSION = "无权操作该消息";
 
+    // ===== 举报 =====
+    public static final String REPORT_NOT_FOUND = "举报不存在";
+    public static final String REPORT_NO_PERMISSION = "无权操作该举报";
+    public static final String REPORT_TARGET_NOT_FOUND = "举报对象不存在";
+    public static final String REPORT_ALREADY_EXISTS = "您已举报过该对象，请勿重复提交";
+    public static final String REPORT_CANNOT_REPORT_SELF = "不能举报自己";
+    public static final String APPEAL_NOT_FOUND = "申诉不存在";
+    public static final String APPEAL_ALREADY_EXISTS = "该举报已申诉过";
+    public static final String APPEAL_ONLY_REPORTED_CAN = "只有被举报人可以申诉";
+    public static final String APPEAL_REPORT_NOT_HANDLED = "举报尚未处理，无法申诉";
+
 }

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.report.AppealMapper">
+
+    <resultMap id="AppealVOMap" type="com.example.vo.report.AppealVO">
+        <id property="id" column="id"/>
+        <result property="reportId" column="report_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="userNickname" column="user_nickname"/>
+        <result property="reason" column="reason"/>
+        <result property="images" column="images"
+                typeHandler="com.example.handle.CommaSeparatedStringListTypeHandler"/>
+        <result property="status" column="status"/>
+        <result property="handleReason" column="handle_reason"/>
+        <result property="handleTime" column="handle_time"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <sql id="BaseColumns">
+        id, report_id, user_id, reason, images, status,
+        handle_reason, handler_id, handle_time, create_time, deleted
+    </sql>
+
+    <sql id="VOColumns">
+        a.id,
+        a.report_id,
+        a.user_id,
+        u.nickname AS user_nickname,
+        a.reason,
+        a.images,
+        a.status,
+        a.handle_reason,
+        a.handle_time,
+        a.create_time
+    </sql>
+
+    <select id="getById" resultType="com.example.entity.Appeal">
+        SELECT <include refid="BaseColumns"/>
+        FROM appeal
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="getByReportId" resultType="com.example.entity.Appeal">
+        SELECT <include refid="BaseColumns"/>
+        FROM appeal
+        WHERE report_id = #{reportId} AND deleted = 0
+        LIMIT 1
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.Appeal">
+        INSERT INTO appeal (
+            id, report_id, user_id, reason, images, status, create_time, deleted
+        ) VALUES (
+                     #{id}, #{reportId}, #{userId}, #{reason}, #{images}, #{status}, #{createTime}, 0
+                 )
+    </insert>
+
+    <select id="getAppealVOById" resultMap="AppealVOMap">
+        SELECT <include refid="VOColumns"/>
+        FROM appeal a
+        LEFT JOIN user u ON a.user_id = u.id
+        WHERE a.id = #{id} AND a.deleted = 0
+    </select>
+
+    <select id="listByReportId" resultMap="AppealVOMap">
+        SELECT <include refid="VOColumns"/>
+        FROM appeal a
+        LEFT JOIN user u ON a.user_id = u.id
+        WHERE a.report_id = #{reportId} AND a.deleted = 0
+        ORDER BY a.create_time DESC
+    </select>
+
+</mapper>
