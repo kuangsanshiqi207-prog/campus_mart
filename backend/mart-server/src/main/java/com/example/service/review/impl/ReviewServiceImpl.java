@@ -2,6 +2,7 @@ package com.example.service.review.impl;
 
 import cn.hutool.core.util.IdUtil;
 import com.example.constant.MessageConstant;
+import com.example.constant.NotificationConstant;
 import com.example.constant.OrderConstant;
 import com.example.context.BaseContext;
 import com.example.dto.review.ReviewCreateDTO;
@@ -14,6 +15,7 @@ import com.example.mapper.order.OrderMapper;
 import com.example.mapper.review.ReviewMapper;
 import com.example.result.PageResult;
 import com.example.service.common.FileService;
+import com.example.service.message.MessageSender;
 import com.example.service.review.ReviewService;
 import com.example.vo.review.ReviewVO;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewMapper reviewMapper;
     private final OrderMapper orderMapper;
     private final FileService fileService;
+    private final MessageSender messageSender;
 
     // ==================== 发表评价 ====================
 
@@ -96,6 +99,15 @@ public class ReviewServiceImpl implements ReviewService {
                 .build();
 
         reviewMapper.insert(review);
+
+        // 8. 通知被评价人
+        messageSender.send(
+                toUserId,
+                NotificationConstant.TYPE_ORDER,
+                NotificationConstant.ORDER_REVIEWED_TITLE,
+                String.format(NotificationConstant.ORDER_REVIEWED_CONTENT, order.getOrderNo()),
+                review.getId()
+        );
 
         return review.getId();
     }

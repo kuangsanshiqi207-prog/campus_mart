@@ -50,7 +50,8 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
                         "/user/market/products/**",
                         "/user/market/categories",
                         "/user/reviews/product/**",
-                        "/user/reviews/detail/**"
+                        "/user/reviews/detail/**",
+                        "/user/announcements/**"
                 );
     }
 

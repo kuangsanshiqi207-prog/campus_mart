@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.message.MessageMapper">
+
+    <sql id="BaseColumns">
+        id, user_id, type, title, content, biz_id, is_read, create_time, deleted
+    </sql>
+
+    <select id="getById" resultType="com.example.entity.Message">
+        SELECT <include refid="BaseColumns"/>
+        FROM message
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.Message">
+        INSERT INTO message (
+            id, user_id, type, title, content, biz_id, is_read, create_time, deleted
+        ) VALUES (
+                     #{id}, #{userId}, #{type}, #{title}, #{content}, #{bizId}, 0, #{createTime}, 0
+                 )
+    </insert>
+
+    <select id="listByUserId" resultType="com.example.entity.Message">
+        SELECT <include refid="BaseColumns"/>
+        FROM message
+        WHERE user_id = #{userId} AND deleted = 0
+        <if test="type != null and type != ''">
+            AND type = #{type}
+        </if>
+        <if test="isRead != null">
+            AND is_read = #{isRead}
+        </if>
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByUserId" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM message
+        WHERE user_id = #{userId} AND deleted = 0
+        <if test="type != null and type != ''">
+            AND type = #{type}
+        </if>
+        <if test="isRead != null">
+            AND is_read = #{isRead}
+        </if>
+    </select>
+
+    <select id="countUnread" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM message
+        WHERE user_id = #{userId} AND is_read = 0 AND deleted = 0
+    </select>
+
+    <update id="markRead">
+        UPDATE message
+        SET is_read = 1
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="markAllRead">
+        UPDATE message
+        SET is_read = 1
+        WHERE user_id = #{userId} AND is_read = 0 AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE message
+        SET deleted = 1
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+</mapper>

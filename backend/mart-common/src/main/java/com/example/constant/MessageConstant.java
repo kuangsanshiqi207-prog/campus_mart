@@ -81,4 +81,8 @@ public class MessageConstant {
     public static final String REVIEW_REPLY_ALREADY_EXISTS = "该评价已回复过";
     public static final String REVIEW_ONLY_RECEIVER_CAN_REPLY = "只有被评价人可以回复";
 
+    // ===== 消息 =====
+    public static final String MESSAGE_NOT_FOUND = "消息不存在";
+    public static final String MESSAGE_NO_PERMISSION = "无权操作该消息";
+
 }

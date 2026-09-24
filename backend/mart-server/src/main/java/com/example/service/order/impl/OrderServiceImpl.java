@@ -3,6 +3,7 @@ package com.example.service.order.impl;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.example.constant.MessageConstant;
+import com.example.constant.NotificationConstant;
 import com.example.constant.OrderConstant;
 import com.example.constant.ProductConstant;
 import com.example.context.BaseContext;
@@ -14,6 +15,7 @@ import com.example.exception.BaseException;
 import com.example.mapper.order.OrderMapper;
 import com.example.mapper.product.ProductMapper;
 import com.example.result.PageResult;
+import com.example.service.message.MessageSender;
 import com.example.service.order.OrderService;
 import com.example.vo.order.OrderVO;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -31,6 +34,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderMapper orderMapper;
     private final ProductMapper productMapper;
+    private final MessageSender messageSender;
 
     // ==================== 申请交易 ====================
 
@@ -84,6 +88,15 @@ public class OrderServiceImpl implements OrderService {
 
         orderMapper.insert(order);
 
+        // 5. 通知卖家
+        messageSender.send(
+                product.getSellerId(),
+                NotificationConstant.TYPE_ORDER,
+                NotificationConstant.ORDER_CREATED_TITLE,
+                String.format(NotificationConstant.ORDER_CREATED_CONTENT, product.getTitle()),
+                orderId
+        );
+
         return orderId;
     }
 
@@ -103,9 +116,18 @@ public class OrderServiceImpl implements OrderService {
         }
 
         orderMapper.updateStatus(id, OrderConstant.STATUS_ACCEPTED);
-
-        // 商品状态改为已预订
         productMapper.updateStatus(order.getProductId(), ProductConstant.STATUS_RESERVED);
+
+        // 通知买家
+        Product product = productMapper.getById(order.getProductId());
+        String productTitle = product != null ? product.getTitle() : "";
+        messageSender.send(
+                order.getBuyerId(),
+                NotificationConstant.TYPE_ORDER,
+                NotificationConstant.ORDER_ACCEPTED_TITLE,
+                String.format(NotificationConstant.ORDER_ACCEPTED_CONTENT, productTitle),
+                id
+        );
     }
 
     // ==================== 卖家拒绝 ====================
@@ -124,6 +146,17 @@ public class OrderServiceImpl implements OrderService {
         }
 
         orderMapper.updateRejectReason(id, OrderConstant.STATUS_REJECTED, reason);
+
+        // 通知买家
+        Product product = productMapper.getById(order.getProductId());
+        String productTitle = product != null ? product.getTitle() : "";
+        messageSender.send(
+                order.getBuyerId(),
+                NotificationConstant.TYPE_ORDER,
+                NotificationConstant.ORDER_REJECTED_TITLE,
+                String.format(NotificationConstant.ORDER_REJECTED_CONTENT, productTitle, reason),
+                id
+        );
     }
 
     // ==================== 取消订单 ====================
@@ -143,9 +176,19 @@ public class OrderServiceImpl implements OrderService {
         }
 
         orderMapper.updateCancelReason(id, OrderConstant.STATUS_CANCELLED, reason);
-
-        // 商品状态恢复为在售
         productMapper.updateStatus(order.getProductId(), ProductConstant.STATUS_ON_SALE);
+
+        // 通知对方
+        Long notifyUserId = order.getBuyerId().equals(userId)
+                ? order.getSellerId()
+                : order.getBuyerId();
+        messageSender.send(
+                notifyUserId,
+                NotificationConstant.TYPE_ORDER,
+                NotificationConstant.ORDER_CANCELLED_TITLE,
+                String.format(NotificationConstant.ORDER_CANCELLED_CONTENT, order.getOrderNo(), reason),
+                id
+        );
     }
 
     // ==================== 买家确认完成 ====================
@@ -164,9 +207,24 @@ public class OrderServiceImpl implements OrderService {
         }
 
         orderMapper.updateCompleted(id, OrderConstant.STATUS_COMPLETED);
-
-        // 商品状态改为已售出
         productMapper.updateStatus(order.getProductId(), ProductConstant.STATUS_SOLD);
+
+        // 通知双方
+        String content = String.format(NotificationConstant.ORDER_COMPLETED_CONTENT, order.getOrderNo());
+        messageSender.send(
+                order.getSellerId(),
+                NotificationConstant.TYPE_ORDER,
+                NotificationConstant.ORDER_COMPLETED_TITLE,
+                content,
+                id
+        );
+        messageSender.send(
+                order.getBuyerId(),
+                NotificationConstant.TYPE_ORDER,
+                NotificationConstant.ORDER_COMPLETED_TITLE,
+                content,
+                id
+        );
     }
 
     // ==================== 订单列表 ====================
@@ -187,7 +245,7 @@ public class OrderServiceImpl implements OrderService {
 
         boolean isBuy = OrderConstant.TYPE_BUY.equals(query.getType());
         Long total;
-        java.util.List<OrderVO> list;
+        List<OrderVO> list;
 
         if (isBuy) {
             total = orderMapper.countByBuyer(userId, query.getStatus());
