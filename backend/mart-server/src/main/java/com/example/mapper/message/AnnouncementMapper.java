@@ -1,5 +1,6 @@
 package com.example.mapper.message;
 
+import com.example.dto.announcementManage.AdminAnnouncementQueryDTO;
 import com.example.entity.Announcement;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -15,4 +16,17 @@ public interface AnnouncementMapper {
                                      @Param("limit") Integer limit);
 
     Long countPublished();
+
+    List<Announcement> listAdmin(@Param("query") AdminAnnouncementQueryDTO query,
+                                 @Param("offset") Integer offset,
+                                 @Param("limit") Integer limit);
+
+    Long countAdmin(@Param("query") AdminAnnouncementQueryDTO query);
+
+    void updateById(Announcement announcement);
+
+    void deleteById(@Param("id") Long id);
+
+    void insert(Announcement announcement);
+
 }

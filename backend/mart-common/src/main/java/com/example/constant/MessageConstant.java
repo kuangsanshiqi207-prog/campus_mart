@@ -102,4 +102,8 @@ public class MessageConstant {
     public static final String CHAT_CANNOT_SEND_TO_SELF = "不能给自己发消息";
     public static final String CHAT_TARGET_USER_NOT_FOUND = "对方用户不存在";
 
+    // ==================== 管理端公告管理 ====================
+    public static final String ANNOUNCEMENT_NOT_FOUND = "公告不存在";
+    public static final String ANNOUNCEMENT_STATUS_INVALID = "公告状态不合法";
+
 }

@@ -7,6 +7,14 @@
         id, title, content, status, admin_id, create_time, update_time, deleted
     </sql>
 
+    <insert id="insert" parameterType="com.example.entity.Announcement">
+        INSERT INTO announcement
+        (id, title, content, status, admin_id, create_time, update_time, deleted)
+        VALUES
+            (#{id}, #{title}, #{content}, #{status}, #{adminId},
+             #{createTime}, #{updateTime}, 0)
+    </insert>
+
     <select id="getById" resultType="com.example.entity.Announcement">
         SELECT <include refid="BaseColumns"/>
         FROM announcement
@@ -27,4 +35,46 @@
         WHERE status = 'published' AND deleted = 0
     </select>
 
+
+    <sql id="AdminAnnouncementQueryCondition">
+        <where>
+            a.deleted = 0
+            <if test="query.status != null and query.status != ''">
+                AND a.status = #{query.status}
+            </if>
+        </where>
+    </sql>
+
+    <select id="listAdmin" resultType="com.example.entity.Announcement">
+        SELECT
+        a.id, a.title, a.content, a.status, a.admin_id,
+        a.create_time, a.update_time, a.deleted
+        FROM announcement a
+        <include refid="AdminAnnouncementQueryCondition"/>
+        ORDER BY a.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countAdmin" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM announcement a
+        <include refid="AdminAnnouncementQueryCondition"/>
+    </select>
+
+    <update id="updateById" parameterType="com.example.entity.Announcement">
+        UPDATE announcement
+        <set>
+            <if test="title != null">title = #{title},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="status != null">status = #{status},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE announcement
+        SET deleted = 1, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
 </mapper>
