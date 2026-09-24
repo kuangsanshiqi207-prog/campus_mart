@@ -59,4 +59,48 @@
         WHERE id = #{id} AND deleted = 0
     </update>
 
+    <sql id="AdminQueryCondition">
+        <where>
+            deleted = 0
+            <if test="query.keyword != null and query.keyword != ''">
+                AND (
+                username LIKE CONCAT('%', #{query.keyword}, '%')
+                OR nickname LIKE CONCAT('%', #{query.keyword}, '%')
+                OR phone LIKE CONCAT('%', #{query.keyword}, '%')
+                )
+            </if>
+            <if test="query.status != null and query.status != ''">
+                AND status = #{query.status}
+            </if>
+            <if test="query.certified != null">
+                AND certified = #{query.certified}
+            </if>
+        </where>
+    </sql>
+
+    <select id="listUsers" resultType="com.example.entity.User">
+        SELECT id, username, password, nickname, avatar, phone, email,
+        role, status, certified, credit_score, create_time, update_time, deleted
+        FROM user
+        <include refid="AdminQueryCondition"/>
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countUsers" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM user
+        <include refid="AdminQueryCondition"/>
+    </select>
+
+    <update id="updateStatus">
+        UPDATE user SET status = #{status}, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="updateCreditScore">
+        UPDATE user SET credit_score = #{score}, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
 </mapper>

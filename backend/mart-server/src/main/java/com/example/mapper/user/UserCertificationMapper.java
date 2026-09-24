@@ -18,4 +18,15 @@ public interface UserCertificationMapper {
     void updateStatus(@Param("id") Long id,
                       @Param("status") String status,
                       @Param("reason") String reason);
+
+    List<UserCertification> listByStatus(@Param("status") String status,
+                                         @Param("offset") Integer offset,
+                                         @Param("limit") Integer limit);
+
+    Long countByStatus(@Param("status") String status);
+
+    void audit(@Param("id") Long id,
+               @Param("status") String status,
+               @Param("reason") String reason,
+               @Param("handlerId") Long handlerId);
 }

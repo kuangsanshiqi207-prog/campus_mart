@@ -37,4 +37,33 @@
         WHERE id = #{id}
     </update>
 
+    <select id="listByStatus" resultType="com.example.entity.UserCertification">
+        SELECT id, user_id, school, student_no, real_name, card_image,
+        status, reason, create_time, update_time, deleted
+        FROM user_certification
+        WHERE deleted = 0
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+        ORDER BY create_time ASC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByStatus" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM user_certification
+        WHERE deleted = 0
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+    </select>
+
+    <update id="audit">
+        UPDATE user_certification
+        SET status = #{status},
+            reason = #{reason},
+            update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
 </mapper>
