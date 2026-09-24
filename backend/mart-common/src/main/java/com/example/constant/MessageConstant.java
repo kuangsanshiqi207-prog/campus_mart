@@ -96,4 +96,10 @@ public class MessageConstant {
     public static final String APPEAL_ONLY_REPORTED_CAN = "只有被举报人可以申诉";
     public static final String APPEAL_REPORT_NOT_HANDLED = "举报尚未处理，无法申诉";
 
+    // ===== 私信 =====
+    public static final String CONVERSATION_NOT_FOUND = "会话不存在";
+    public static final String CONVERSATION_NO_PERMISSION = "无权操作该会话";
+    public static final String CHAT_CANNOT_SEND_TO_SELF = "不能给自己发消息";
+    public static final String CHAT_TARGET_USER_NOT_FOUND = "对方用户不存在";
+
 }

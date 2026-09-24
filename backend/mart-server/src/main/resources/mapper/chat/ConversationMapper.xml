@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.chat.ConversationMapper">
+
+    <sql id="BaseColumns">
+        id, user_a_id, user_b_id, last_message, last_message_at,
+        a_unread, b_unread, create_time, update_time, deleted
+    </sql>
+
+    <delete id="deleteById">
+        UPDATE conversation SET deleted = 1 WHERE id = #{id}
+    </delete>
+
+    <select id="getById" resultType="com.example.entity.Conversation">
+        SELECT <include refid="BaseColumns"/>
+        FROM conversation
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="getByUserPair" resultType="com.example.entity.Conversation">
+        SELECT <include refid="BaseColumns"/>
+        FROM conversation
+        WHERE user_a_id = #{userAId} AND user_b_id = #{userBId} AND deleted = 0
+        LIMIT 1
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.Conversation">
+        INSERT INTO conversation (
+            id, user_a_id, user_b_id, last_message, last_message_at,
+            a_unread, b_unread, create_time, update_time, deleted
+        ) VALUES (
+                     #{id}, #{userAId}, #{userBId}, #{lastMessage}, #{lastMessageAt},
+                     0, 0, #{createTime}, #{updateTime}, 0
+                 )
+    </insert>
+
+    <update id="updateLastMessage">
+        UPDATE conversation
+        SET last_message = #{lastMessage},
+            last_message_at = NOW(),
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <update id="incrementUnread">
+        UPDATE conversation
+        SET
+        <if test="targetIsA">
+            a_unread = a_unread + 1,
+        </if>
+        <if test="!targetIsA">
+            b_unread = b_unread + 1,
+        </if>
+        update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <update id="clearUnread">
+        UPDATE conversation
+        SET
+        <if test="targetIsA">
+            a_unread = 0,
+        </if>
+        <if test="!targetIsA">
+            b_unread = 0,
+        </if>
+        update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <select id="listByUserId" resultType="com.example.entity.Conversation">
+        SELECT <include refid="BaseColumns"/>
+        FROM conversation
+        WHERE (user_a_id = #{userId} OR user_b_id = #{userId})
+        AND deleted = 0
+        ORDER BY last_message_at DESC, id DESC
+    </select>
+
+</mapper>
