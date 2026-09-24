@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.stats.StatsMapper">
+
+    <select id="countMyProducts" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM product
+        WHERE seller_id = #{userId} AND deleted = 0
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+    </select>
+
+    <select id="countMyOrders" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM `order`
+        WHERE deleted = 0
+        <if test="role == 'buy'">
+            AND buyer_id = #{userId}
+        </if>
+        <if test="role == 'sell'">
+            AND seller_id = #{userId}
+        </if>
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+    </select>
+
+    <select id="getMyOrderStats" resultType="com.example.vo.stats.UserOrderStatsVO">
+        SELECT
+            COALESCE(SUM(CASE WHEN buyer_id = #{userId} THEN 1 ELSE 0 END), 0) AS buyTotal,
+            COALESCE(SUM(CASE WHEN seller_id = #{userId} THEN 1 ELSE 0 END), 0) AS sellTotal,
+            COALESCE(SUM(CASE WHEN buyer_id = #{userId} AND status = 'completed' THEN 1 ELSE 0 END), 0) AS buyCompleted,
+            COALESCE(SUM(CASE WHEN seller_id = #{userId} AND status = 'completed' THEN 1 ELSE 0 END), 0) AS sellCompleted,
+            COALESCE(SUM(CASE WHEN buyer_id = #{userId} AND status = 'completed' THEN amount ELSE 0 END), 0) AS buyAmount,
+            COALESCE(SUM(CASE WHEN seller_id = #{userId} AND status = 'completed' THEN amount ELSE 0 END), 0) AS sellAmount,
+            COALESCE(SUM(CASE WHEN (buyer_id = #{userId} OR seller_id = #{userId}) AND status IN ('pending', 'accepted') THEN 1 ELSE 0 END), 0) AS pending,
+            0 AS refunding,
+            0 AS dispute
+        FROM `order`
+        WHERE deleted = 0
+          AND (buyer_id = #{userId} OR seller_id = #{userId})
+    </select>
+
+    <select id="getMyReviewStats" resultType="com.example.vo.stats.UserReviewStatsVO">
+        SELECT
+            COUNT(*) AS receivedTotal,
+            0 AS sentTotal,
+            COALESCE(AVG(score), 0) AS avgScore,
+            COALESCE(SUM(CASE WHEN score = 5 THEN 1 ELSE 0 END), 0) AS score5Count,
+            COALESCE(SUM(CASE WHEN score = 4 THEN 1 ELSE 0 END), 0) AS score4Count,
+            COALESCE(SUM(CASE WHEN score = 3 THEN 1 ELSE 0 END), 0) AS score3Count,
+            COALESCE(SUM(CASE WHEN score = 2 THEN 1 ELSE 0 END), 0) AS score2Count,
+            COALESCE(SUM(CASE WHEN score = 1 THEN 1 ELSE 0 END), 0) AS score1Count,
+            COALESCE(SUM(CASE WHEN score &gt;= 4 THEN 1 ELSE 0 END) / COUNT(*) * 100, 0) AS goodRate
+        FROM review
+        WHERE to_user_id = #{userId} AND deleted = 0
+    </select>
+
+    <select id="countReceivedReviews" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM review
+        WHERE to_user_id = #{userId} AND deleted = 0
+    </select>
+
+    <select id="countMyFavorites" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM favorite f
+                 INNER JOIN product p ON f.product_id = p.id AND p.deleted = 0
+        WHERE f.user_id = #{userId}
+    </select>
+
+    <select id="getCreditTrend" resultType="java.util.Map">
+        SELECT
+            DATE(create_time) AS date,
+            AVG(after_score) AS value
+        FROM credit_log
+        WHERE user_id = #{userId}
+          AND create_time &gt;= #{startDate}
+        GROUP BY DATE(create_time)
+        ORDER BY date ASC
+    </select>
+
+    <select id="getOrderTrend" resultType="java.util.Map">
+        SELECT
+        DATE(create_time) AS date,
+        COUNT(*) AS value
+        FROM `order`
+        WHERE deleted = 0
+        AND create_time &gt;= #{startDate}
+        <if test="role == 'buy'">
+            AND buyer_id = #{userId}
+        </if>
+        <if test="role == 'sell'">
+            AND seller_id = #{userId}
+        </if>
+        GROUP BY DATE(create_time)
+        ORDER BY date ASC
+    </select>
+
+</mapper>
