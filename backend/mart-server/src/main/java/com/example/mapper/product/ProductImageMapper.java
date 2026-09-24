@@ -11,4 +11,6 @@ public interface ProductImageMapper {
     List<ProductImage> listByProductId(Long productId);
 
     void batchInsert(List<ProductImage> images);
+
+    void deleteByProductId(Long productId);
 }

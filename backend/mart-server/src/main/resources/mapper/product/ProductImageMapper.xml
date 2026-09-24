@@ -18,4 +18,8 @@
         </foreach>
     </insert>
 
+    <delete id="deleteByProductId">
+        DELETE FROM product_image WHERE product_id = #{productId}
+    </delete>
+
 </mapper>

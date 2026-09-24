@@ -142,4 +142,110 @@
           AND deleted = 0
     </select>
 
+    <insert id="insert" parameterType="com.example.entity.Product">
+        INSERT INTO product (
+            id, seller_id, category_id, title, description,
+            price, original_price, quality, trade_type, trade_place,
+            status, audit_status, audit_reason,
+            view_count, favorite_count, create_time, update_time, deleted
+        ) VALUES (
+                     #{id}, #{sellerId}, #{categoryId}, #{title}, #{description},
+                     #{price}, #{originalPrice}, #{quality}, #{tradeType}, #{tradePlace},
+                     #{status}, #{auditStatus}, #{auditReason},
+                     0, 0, #{createTime}, #{updateTime}, 0
+                 )
+    </insert>
+
+    <update id="update" parameterType="com.example.entity.Product">
+        UPDATE product
+        <set>
+            <if test="title != null">title = #{title},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="originalPrice != null">original_price = #{originalPrice},</if>
+            <if test="quality != null">quality = #{quality},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="tradeType != null">trade_type = #{tradeType},</if>
+            <if test="tradePlace != null">trade_place = #{tradePlace},</if>
+            <if test="auditStatus != null">audit_status = #{auditStatus},</if>
+            <if test="auditReason != null">audit_reason = #{auditReason},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="updateStatus">
+        UPDATE product
+        SET status = #{status}, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="updateAuditStatus">
+        UPDATE product
+        SET audit_status = #{auditStatus},
+            audit_reason = #{auditReason},
+            update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE product
+        SET deleted = 1, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <select id="listMine" resultType="com.example.vo.product.ProductVO">
+        SELECT
+        p.id,
+        p.title,
+        p.price,
+        p.original_price,
+        p.quality,
+        p.category_id,
+        c.name AS category_name,
+        p.status,
+        p.seller_id,
+        u.nickname AS seller_nickname,
+        p.view_count,
+        p.favorite_count,
+        p.create_time,
+        (SELECT pi.url FROM product_image pi
+        WHERE pi.product_id = p.id
+        ORDER BY pi.sort ASC, pi.id ASC
+        LIMIT 1) AS cover
+        FROM product p
+        LEFT JOIN category c ON p.category_id = c.id AND c.deleted = 0
+        LEFT JOIN user u ON p.seller_id = u.id AND u.deleted = 0
+        WHERE p.deleted = 0 AND p.seller_id = #{sellerId}
+        <if test="status != null and status != ''">
+            AND p.status = #{status}
+        </if>
+        ORDER BY p.create_time DESC, p.id DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countMine" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM product
+        WHERE deleted = 0 AND seller_id = #{sellerId}
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+    </select>
+
+    <select id="getMyStats" resultType="com.example.vo.product.UserProductStatsVO">
+        SELECT
+            COUNT(*) AS total,
+            COALESCE(SUM(CASE WHEN status = 'on_sale' AND audit_status = 'approved' THEN 1 ELSE 0 END), 0) AS onSale,
+            COALESCE(SUM(CASE WHEN status = 'reserved' THEN 1 ELSE 0 END), 0) AS reserved,
+            COALESCE(SUM(CASE WHEN status = 'sold' THEN 1 ELSE 0 END), 0) AS sold,
+            COALESCE(SUM(CASE WHEN status = 'offline' THEN 1 ELSE 0 END), 0) AS offline,
+            COALESCE(SUM(CASE WHEN audit_status = 'pending' THEN 1 ELSE 0 END), 0) AS pending,
+            COALESCE(SUM(CASE WHEN audit_status = 'rejected' THEN 1 ELSE 0 END), 0) AS rejected,
+            COALESCE(SUM(view_count), 0) AS viewTotal,
+            COALESCE(SUM(favorite_count), 0) AS favoriteTotal
+        FROM product
+        WHERE deleted = 0 AND seller_id = #{sellerId}
+    </select>
+
 </mapper>

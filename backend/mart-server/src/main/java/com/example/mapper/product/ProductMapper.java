@@ -3,6 +3,7 @@ package com.example.mapper.product;
 import com.example.dto.product.ProductQueryDTO;
 import com.example.entity.Product;
 import com.example.vo.product.ProductVO;
+import com.example.vo.product.UserProductStatsVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -33,4 +34,26 @@ public interface ProductMapper {
     void decrementFavoriteCount(Long id);
 
     Integer countOnSaleBySellerId(Long sellerId);
+
+    void insert(Product product);
+
+    void update(Product product);
+
+    void updateStatus(@Param("id") Long id, @Param("status") String status);
+
+    void updateAuditStatus(@Param("id") Long id,
+                           @Param("auditStatus") String auditStatus,
+                           @Param("auditReason") String auditReason);
+
+    void deleteById(Long id);
+
+    List<ProductVO> listMine(@Param("sellerId") Long sellerId,
+                             @Param("status") String status,
+                             @Param("offset") Integer offset,
+                             @Param("limit") Integer limit);
+
+    Long countMine(@Param("sellerId") Long sellerId,
+                   @Param("status") String status);
+
+    UserProductStatsVO getMyStats(Long sellerId);
 }

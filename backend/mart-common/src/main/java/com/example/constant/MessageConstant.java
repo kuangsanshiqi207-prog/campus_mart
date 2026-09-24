@@ -54,4 +54,15 @@ public class MessageConstant {
     public static final String PRODUCT_ALREADY_FAVORITED = "已收藏该商品";
     public static final String PRODUCT_NOT_FAVORITED = "未收藏该商品";
 
+    // ===== 我的商店 =====
+    public static final String PRODUCT_NOT_YOURS = "无权操作该商品";
+    public static final String PRODUCT_SOLD_CANNOT_EDIT = "已售出商品不能修改";
+    public static final String PRODUCT_RESERVED_CANNOT_DELETE = "商品已被预订，无法删除";
+    public static final String PRODUCT_SOLD_CANNOT_DELETE = "已成交商品不能删除";
+    public static final String PRODUCT_ALREADY_OFFLINE = "商品已是下架状态";
+    public static final String PRODUCT_ALREADY_ON_SALE = "商品已是上架状态";
+    public static final String PRODUCT_AUDIT_NOT_PASSED = "商品审核未通过，不能上架";
+    public static final String CATEGORY_NOT_FOUND = "分类不存在";
+    public static final String CATEGORY_DISABLED = "分类已禁用";
+
 }
