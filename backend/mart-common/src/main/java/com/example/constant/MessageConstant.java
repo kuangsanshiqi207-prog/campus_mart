@@ -73,4 +73,12 @@ public class MessageConstant {
     public static final String ORDER_BUYER_NOT_MATCH = "只有买家可以确认完成";
     public static final String ORDER_SELLER_NOT_MATCH = "只有卖家可以操作";
 
+    // ===== 评价 =====
+    public static final String REVIEW_ORDER_NOT_COMPLETED = "订单未完成，不能评价";
+    public static final String REVIEW_ALREADY_EXISTS = "您已评价过该订单";
+    public static final String REVIEW_NOT_FOUND = "评价不存在";
+    public static final String REVIEW_NO_PERMISSION = "无权操作该评价";
+    public static final String REVIEW_REPLY_ALREADY_EXISTS = "该评价已回复过";
+    public static final String REVIEW_ONLY_RECEIVER_CAN_REPLY = "只有被评价人可以回复";
+
 }

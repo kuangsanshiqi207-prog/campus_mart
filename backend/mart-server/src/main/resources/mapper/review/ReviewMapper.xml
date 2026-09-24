@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.review.ReviewMapper">
+
+    <resultMap id="ReviewVOMap" type="com.example.vo.review.ReviewVO">
+        <id property="id" column="id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="productId" column="product_id"/>
+        <result property="productTitle" column="product_title"/>
+        <result property="fromUserId" column="from_user_id"/>
+        <result property="fromUserNickname" column="from_user_nickname"/>
+        <result property="fromUserAvatar" column="from_user_avatar"/>
+        <result property="toUserId" column="to_user_id"/>
+        <result property="score" column="score"/>
+        <result property="content" column="content"/>
+        <result property="images" column="images"
+                typeHandler="com.example.handle.CommaSeparatedStringListTypeHandler"/>
+        <result property="reply" column="reply"/>
+        <result property="replyTime" column="reply_time"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <sql id="BaseColumns">
+        id, order_id, product_id, from_user_id, to_user_id,
+        score, content, images, reply, reply_time,
+        create_time, update_time, deleted
+    </sql>
+
+    <sql id="VOColumns">
+        r.id,
+        r.order_id,
+        r.product_id,
+        p.title AS product_title,
+        r.from_user_id,
+        fu.nickname AS from_user_nickname,
+        fu.avatar AS from_user_avatar,
+        r.to_user_id,
+        r.score,
+        r.content,
+        r.images,
+        r.reply,
+        r.reply_time,
+        r.create_time
+    </sql>
+
+    <select id="getById" resultType="com.example.entity.Review">
+        SELECT <include refid="BaseColumns"/>
+        FROM review
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="getByOrderAndFrom" resultType="com.example.entity.Review">
+        SELECT <include refid="BaseColumns"/>
+        FROM review
+        WHERE order_id = #{orderId} AND from_user_id = #{fromUserId} AND deleted = 0
+        LIMIT 1
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.Review">
+        INSERT INTO review (
+            id, order_id, product_id, from_user_id, to_user_id,
+            score, content, images, create_time, update_time, deleted
+        ) VALUES (
+                     #{id}, #{orderId}, #{productId}, #{fromUserId}, #{toUserId},
+                     #{score}, #{content}, #{images}, #{createTime}, #{updateTime}, 0
+                 )
+    </insert>
+
+    <update id="updateReply">
+        UPDATE review
+        SET reply = #{reply}, reply_time = NOW(), update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <select id="getReviewVOById" resultMap="ReviewVOMap">
+        SELECT <include refid="VOColumns"/>
+        FROM review r
+        LEFT JOIN product p ON r.product_id = p.id
+        LEFT JOIN user fu ON r.from_user_id = fu.id
+        WHERE r.id = #{id} AND r.deleted = 0
+    </select>
+
+    <select id="listByProduct" resultMap="ReviewVOMap">
+        SELECT <include refid="VOColumns"/>
+        FROM review r
+        LEFT JOIN product p ON r.product_id = p.id
+        LEFT JOIN user fu ON r.from_user_id = fu.id
+        WHERE r.deleted = 0 AND r.product_id = #{productId}
+        ORDER BY r.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByProduct" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM review
+        WHERE deleted = 0 AND product_id = #{productId}
+    </select>
+
+    <select id="listByFromUser" resultMap="ReviewVOMap">
+        SELECT <include refid="VOColumns"/>
+        FROM review r
+        LEFT JOIN product p ON r.product_id = p.id
+        LEFT JOIN user fu ON r.from_user_id = fu.id
+        WHERE r.deleted = 0 AND r.from_user_id = #{userId}
+        ORDER BY r.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByFromUser" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM review
+        WHERE deleted = 0 AND from_user_id = #{userId}
+    </select>
+
+    <select id="listByToUser" resultMap="ReviewVOMap">
+        SELECT <include refid="VOColumns"/>
+        FROM review r
+        LEFT JOIN product p ON r.product_id = p.id
+        LEFT JOIN user fu ON r.from_user_id = fu.id
+        WHERE r.deleted = 0 AND r.to_user_id = #{userId}
+        ORDER BY r.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByToUser" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM review
+        WHERE deleted = 0 AND to_user_id = #{userId}
+    </select>
+
+</mapper>
