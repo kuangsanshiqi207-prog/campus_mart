@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.statsManage.AdminStatsMapper">
+
+    <!-- ==================== 概览 ==================== -->
+
+    <select id="countUserTotal" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM user WHERE deleted = 0
+    </select>
+
+    <select id="countUserToday" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM user
+        WHERE deleted = 0 AND DATE(create_time) = CURDATE()
+    </select>
+
+    <select id="countProductTotal" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM product WHERE deleted = 0
+    </select>
+
+    <select id="countProductToday" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM product
+        WHERE deleted = 0 AND DATE(create_time) = CURDATE()
+    </select>
+
+    <select id="countOrderTotal" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM `order` WHERE deleted = 0
+    </select>
+
+    <select id="countOrderToday" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM `order`
+        WHERE deleted = 0 AND DATE(create_time) = CURDATE()
+    </select>
+
+    <select id="countReportPending" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM report
+        WHERE deleted = 0 AND status = 'pending'
+    </select>
+
+    <select id="countAuditPending" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM product
+        WHERE deleted = 0 AND audit_status = 'pending'
+    </select>
+
+    <!-- ==================== 趋势 ==================== -->
+
+    <select id="countUserTrend" resultType="java.util.Map">
+        SELECT DATE(create_time) AS date, COUNT(*) AS value
+        FROM user
+        WHERE deleted = 0
+          AND create_time &gt;= #{start}
+          AND create_time &lt; DATE_ADD(#{end}, INTERVAL 1 DAY)
+        GROUP BY DATE(create_time)
+        ORDER BY DATE(create_time) ASC
+    </select>
+
+    <select id="countProductTrend" resultType="java.util.Map">
+        SELECT DATE(create_time) AS date, COUNT(*) AS value
+        FROM product
+        WHERE deleted = 0
+          AND create_time &gt;= #{start}
+          AND create_time &lt; DATE_ADD(#{end}, INTERVAL 1 DAY)
+        GROUP BY DATE(create_time)
+        ORDER BY DATE(create_time) ASC
+    </select>
+
+    <select id="countOrderTrend" resultType="java.util.Map">
+        SELECT DATE(create_time) AS date, COUNT(*) AS value
+        FROM `order`
+        WHERE deleted = 0
+          AND create_time &gt;= #{start}
+          AND create_time &lt; DATE_ADD(#{end}, INTERVAL 1 DAY)
+        GROUP BY DATE(create_time)
+        ORDER BY DATE(create_time) ASC
+    </select>
+
+    <!-- ==================== 举报统计 ==================== -->
+
+    <select id="countReportStats" resultType="com.example.vo.statsManage.ReportStatsVO">
+        SELECT
+            COUNT(*) AS total,
+            COALESCE(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0) AS pending,
+            COALESCE(SUM(CASE WHEN status = 'valid' THEN 1 ELSE 0 END), 0) AS valid,
+            COALESCE(SUM(CASE WHEN status = 'invalid' THEN 1 ELSE 0 END), 0) AS invalid,
+            COALESCE(
+                    (SUM(CASE WHEN status IN ('valid', 'invalid') THEN 1 ELSE 0 END) * 100.0
+                        / NULLIF(COUNT(*), 0)),
+                    0
+            ) AS handleRate
+        FROM report
+        WHERE deleted = 0
+    </select>
+
+    <!-- ==================== 审核统计 ==================== -->
+
+    <select id="countAuditTotal" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM product
+        WHERE deleted = 0 AND audit_status IN ('approved', 'rejected')
+    </select>
+
+    <select id="countAuditPass" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM product
+        WHERE deleted = 0 AND audit_status = 'approved'
+    </select>
+
+    <select id="countAuditReject" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM product
+        WHERE deleted = 0 AND audit_status = 'rejected'
+    </select>
+
+</mapper>
