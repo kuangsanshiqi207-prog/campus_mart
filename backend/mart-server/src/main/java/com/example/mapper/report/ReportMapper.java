@@ -1,5 +1,6 @@
 package com.example.mapper.report;
 
+import com.example.dto.reportManage.AdminReportQueryDTO;
 import com.example.entity.Report;
 import com.example.vo.report.ReportVO;
 import org.apache.ibatis.annotations.Mapper;
@@ -25,4 +26,16 @@ public interface ReportMapper {
                                   @Param("limit") Integer limit);
 
     Long countByReporter(Long reporterId);
+
+    List<Report> listAdmin(@Param("query") AdminReportQueryDTO query,
+                           @Param("offset") Integer offset,
+                           @Param("limit") Integer limit);
+
+    Long countAdmin(@Param("query") AdminReportQueryDTO query);
+
+    void handle(@Param("id") Long id,
+                @Param("status") String status,
+                @Param("action") String action,
+                @Param("handleReason") String handleReason,
+                @Param("handlerId") Long handlerId);
 }

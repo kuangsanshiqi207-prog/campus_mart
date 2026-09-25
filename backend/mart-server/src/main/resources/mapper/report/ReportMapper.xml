@@ -92,4 +92,44 @@
         WHERE reporter_id = #{reporterId} AND deleted = 0
     </select>
 
+    <sql id="AdminReportQueryCondition">
+        <where>
+            r.deleted = 0
+            <if test="query.status != null and query.status != ''">
+                AND r.status = #{query.status}
+            </if>
+            <if test="query.targetType != null and query.targetType != ''">
+                AND r.target_type = #{query.targetType}
+            </if>
+        </where>
+    </sql>
+
+    <select id="listAdmin" resultType="com.example.entity.Report">
+        SELECT
+        r.id, r.reporter_id, r.target_type, r.target_id,
+        r.reason, r.description, r.images, r.status,
+        r.action, r.handle_reason, r.handler_id, r.handle_time,
+        r.create_time, r.deleted
+        FROM report r
+        <include refid="AdminReportQueryCondition"/>
+        ORDER BY r.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countAdmin" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM report r
+        <include refid="AdminReportQueryCondition"/>
+    </select>
+
+    <update id="handle">
+        UPDATE report
+        SET status = #{status},
+            action = #{action},
+            handle_reason = #{handleReason},
+            handler_id = #{handlerId},
+            handle_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
 </mapper>

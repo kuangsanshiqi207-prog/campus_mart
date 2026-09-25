@@ -106,4 +106,11 @@ public class MessageConstant {
     public static final String ANNOUNCEMENT_NOT_FOUND = "公告不存在";
     public static final String ANNOUNCEMENT_STATUS_INVALID = "公告状态不合法";
 
+
+    // ==================== 管理端举报管理 ====================
+    public static final String REPORT_ALREADY_HANDLED = "该举报已处理";
+    public static final String APPEAL_ALREADY_HANDLED = "该申诉已处理";
+    public static final String REPORT_HANDLE_RESULT_INVALID = "处理结果不合法";
+    public static final String APPEAL_HANDLE_RESULT_INVALID = "申诉处理结果不合法";
+
 }

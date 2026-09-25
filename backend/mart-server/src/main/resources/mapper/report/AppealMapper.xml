@@ -71,4 +71,39 @@
         ORDER BY a.create_time DESC
     </select>
 
+    <sql id="AdminAppealQueryCondition">
+        <where>
+            a.deleted = 0
+            <if test="query.status != null and query.status != ''">
+                AND a.status = #{query.status}
+            </if>
+        </where>
+    </sql>
+
+    <select id="listAdmin" resultType="com.example.entity.Appeal">
+        SELECT
+        a.id, a.report_id, a.user_id, a.reason, a.images,
+        a.status, a.handle_reason, a.handler_id, a.handle_time,
+        a.create_time, a.deleted
+        FROM appeal a
+        <include refid="AdminAppealQueryCondition"/>
+        ORDER BY a.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countAdmin" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM appeal a
+        <include refid="AdminAppealQueryCondition"/>
+    </select>
+
+    <update id="handle">
+        UPDATE appeal
+        SET status = #{status},
+            handle_reason = #{handleReason},
+            handler_id = #{handlerId},
+            handle_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
 </mapper>
