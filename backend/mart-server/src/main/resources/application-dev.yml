@@ -1,7 +1,7 @@
 # ==================== 服务 ====================
 app:
-  port: 8080
-  name: campus-mart
+  port: 8081
+  name: mart-server
   profile: dev
 
 # ==================== 数据源 ====================
@@ -65,10 +65,16 @@ file:
   storage-type: aliyun-oss
   local:
     base-path: ./uploads
-    base-url: http://localhost:8080/uploads
+    base-url: http://localhost:8081/uploads
 # ==================== 阿里云OSS上传 ====================
 alioss:
   endpoint: oss-cn-hangzhou.aliyuncs.com
   access-key-id: 你的AccessKeyId
   access-key-secret: 你的AccessKeySecret
   bucket-name: 你的Bucket名
+
+# ==================== Nacos ====================
+nacos:
+  server-addr: 127.0.0.1:8848
+  namespace: public
+  group: DEFAULT_GROUP
