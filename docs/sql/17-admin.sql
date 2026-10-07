@@ -21,5 +21,5 @@ CREATE TABLE IF NOT EXISTS `admin` (
 
 -- 初始化一个超级管理员：admin / 123456
 INSERT INTO `admin` (id, username, password, nickname, role, status)
-VALUES (1, 'admin', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '超级管理员', 'SUPER_ADMIN', 'normal')
+VALUES (1, 'admin', '$2b$10$X3ANoYoxCI5vpj9wC.tbU.sj/EAPHklE116Q3Mv1GgtIVf0/olELS', '超级管理员', 'SUPER_ADMIN', 'normal')
 ON DUPLICATE KEY UPDATE `username` = `username`;

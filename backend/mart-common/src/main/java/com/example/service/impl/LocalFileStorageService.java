@@ -8,13 +8,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 @Slf4j
 @Service
@@ -36,15 +33,17 @@ public class LocalFileStorageService implements FileStorageService {
     @Override
     public String upload(MultipartFile file, String fileName) {
         try {
-            // 按日期分子目录
-            String datePath = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-            String relativePath = datePath + "/" + fileName;
-
-            Path fullPath = Paths.get(basePath, relativePath);
+            // fileName 已包含日期目录。转成绝对路径，避免 Tomcat 把相对路径写到临时目录。
+            Path root = Paths.get(basePath).toAbsolutePath().normalize();
+            Path fullPath = root.resolve(fileName).normalize();
+            if (!fullPath.startsWith(root)) {
+                throw new IOException("非法文件路径");
+            }
             Files.createDirectories(fullPath.getParent());
             file.transferTo(fullPath.toFile());
 
-            String url = baseUrl + "/" + relativePath;
+            String relativePath = root.relativize(fullPath).toString().replace("\\", "/");
+            String url = baseUrl.replaceAll("/$", "") + "/" + relativePath;
             log.info("文件保存到本地成功：{}", url);
             return url;
         } catch (IOException e) {

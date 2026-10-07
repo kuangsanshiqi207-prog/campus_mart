@@ -12,7 +12,7 @@ public interface UserService {
     /**
      * 发送验证码
      */
-    void sendCode(SendCodeDTO dto);
+    String sendCode(SendCodeDTO dto);
 
     /**
      * 注册

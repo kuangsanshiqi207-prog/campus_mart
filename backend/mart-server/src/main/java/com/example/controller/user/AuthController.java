@@ -24,9 +24,8 @@ public class AuthController {
 
     @Operation(summary = "发送验证码")
     @PostMapping("/send-code")
-    public Result<Void> sendCode(@RequestBody @Valid SendCodeDTO dto) {
-        userService.sendCode(dto);
-        return Result.success();
+    public Result<String> sendCode(@RequestBody @Valid SendCodeDTO dto) {
+        return Result.success(userService.sendCode(dto));
     }
 
     @Operation(summary = "用户注册")

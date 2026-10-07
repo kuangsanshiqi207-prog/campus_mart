@@ -47,7 +47,7 @@ public class UserServiceImpl implements UserService {
     private final BCryptPasswordEncoder passwordEncoder;
 
     @Override
-    public void sendCode(SendCodeDTO dto) {
+    public String sendCode(SendCodeDTO dto) {
         String code = RandomUtil.randomNumbers(smsProperties.getCodeLength());
         String key = String.format(RedisKeyConstant.SMS_CODE, dto.getPhone());
         redisTemplate.opsForValue().set(
@@ -57,8 +57,9 @@ public class UserServiceImpl implements UserService {
                 TimeUnit.MINUTES
         );
 
-        // TODO 接入短信服务，MVP 阶段打日志
+        // 短信服务尚未接入，验证码同时返回给调用方，方便本地注册
         log.info("【验证码】手机号 {}，验证码 {}", dto.getPhone(), code);
+        return code;
     }
 
     @Override

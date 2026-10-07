@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -72,9 +73,17 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
 
     protected void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
         log.info("开始拓展消息转换器...");
-        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setObjectMapper(new JacksonObjectMapper());
-        converters.add(0,converter);
+        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter(new JacksonObjectMapper()) {
+            @Override
+            public boolean canWrite(Class<?> clazz, MediaType mediaType) {
+                // SpringDoc 的 /v3/api-docs 返回 byte[]，不能再被 Jackson 编成 Base64
+                if (clazz == byte[].class) {
+                    return false;
+                }
+                return super.canWrite(clazz, mediaType);
+            }
+        };
+        converters.add(0, converter);
     }
 
     @Value("${campus.file.local.base-path:./uploads}")
