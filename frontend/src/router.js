@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import AuthStage from './components/AuthStage.vue'
 import LoginView from './views/LoginView.vue'
 import RegisterView from './views/RegisterView.vue'
+import ResetView from './views/ResetView.vue'
 import MarketView from './views/MarketView.vue'
 import ProductView from './views/ProductView.vue'
 import ShopView from './views/ShopView.vue'
@@ -17,8 +19,15 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/', redirect: '/market' },
-    { path: '/login', component: LoginView },
-    { path: '/register', component: RegisterView },
+    {
+      path: '/',
+      component: AuthStage,
+      children: [
+        { path: 'login', component: LoginView },
+        { path: 'register', component: RegisterView },
+        { path: 'reset', component: ResetView }
+      ]
+    },
     { path: '/market', component: MarketView },
     { path: '/products/:id', component: ProductView },
     { path: '/shop', component: ShopView },

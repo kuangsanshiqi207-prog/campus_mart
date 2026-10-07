@@ -144,7 +144,7 @@ onMounted(() => {
 <template>
   <div class="shell">
     <header class="topbar">
-      <a class="brand" href="/admin">管理后台</a>
+      <a class="brand" href="/admin"><i class="brand-mark">管</i>管理后台</a>
       <a class="btn ghost" href="/market">回集市</a>
       <button v-if="authed" class="btn ghost" type="button" @click="logout">退出管理</button>
     </header>

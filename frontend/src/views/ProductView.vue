@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import UserBar from '../components/UserBar.vue'
+import MiniIcon from '../components/MiniIcon.vue'
 import { request } from '../api'
 
 const route = useRoute()
@@ -98,15 +99,22 @@ onMounted(async () => {
         </div>
       </div>
       <div class="detail-body">
-        <a class="back" href="/market">返回集市</a>
+        <a class="back" href="/market"><MiniIcon name="home" />返回集市</a>
         <div class="price">¥{{ product.price }}</div>
         <h1 class="title">{{ product.title }}</h1>
-        <p>{{ product.description }}</p>
-        <p class="meta">
-          <span>{{ qualityLabel[product.quality] || product.quality }}</span>
-          <span>{{ tradeLabel[product.tradeType] || product.tradeType }} · {{ product.tradePlace }}</span>
-        </p>
-        <p class="meta"><span>{{ product.seller && product.seller.nickname }}</span><span v-if="product.seller">信用 {{ product.seller.creditScore }}</span></p>
+        <p>{{ product.description || '卖家还没有写更多说明，可以私信问成色和配件。' }}</p>
+        <div class="fact-row">
+          <span>{{ qualityLabel[product.quality] || '二手' }}</span>
+          <span>{{ tradeLabel[product.tradeType] || '当面交易' }}</span>
+          <span v-if="product.tradePlace">{{ product.tradePlace }}</span>
+        </div>
+        <div v-if="product.seller" class="seller-card">
+          <i class="avatar lg">{{ (product.seller.nickname || '同').slice(0, 1) }}</i>
+          <div>
+            <b>{{ product.seller.nickname || '同学' }}</b>
+            <span>信用 {{ product.seller.creditScore }}</span>
+          </div>
+        </div>
         <label class="field"><span>给卖家的留言</span><input v-model="remark" placeholder="什么时候方便面交" /></label>
         <p v-if="message" class="hint">{{ message }}</p>
         <p v-if="error" class="form-error">{{ error }}</p>

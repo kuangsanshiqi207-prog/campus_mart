@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import UserBar from '../components/UserBar.vue'
+import MiniIcon from '../components/MiniIcon.vue'
 import { getUser, request } from '../api'
 
 const type = ref('buy')
@@ -13,6 +14,12 @@ const statusLabel = {
   rejected: '已拒绝',
   cancelled: '已取消',
   completed: '已完成'
+}
+
+function tone(status) {
+  if (status === 'completed') return 'done'
+  if (status === 'rejected' || status === 'cancelled') return 'muted'
+  return ''
 }
 
 async function load() {
@@ -40,22 +47,31 @@ onMounted(load)
 <template>
   <div class="shell">
     <UserBar />
-    <main class="page">
+    <main class="stage">
+      <header class="stage-head">
+        <i class="spot-icon"><MiniIcon name="box" /></i>
+        <div>
+          <p class="kicker">交易进度</p>
+          <h1>我的订单</h1>
+          <p>卖家接受之后约见面，当面看过再确认完成。</p>
+        </div>
+      </header>
       <div class="chips">
         <button class="chip" :class="{ active: type === 'buy' }" type="button" @click="type = 'buy'">我买到的</button>
         <button class="chip" :class="{ active: type === 'sell' }" type="button" @click="type = 'sell'">我卖出的</button>
       </div>
       <p v-if="error" class="error">{{ error }}</p>
-      <p v-else-if="orders.length === 0" class="empty">没有订单</p>
-      <article v-for="item in orders" :key="item.id" class="row">
+      <p v-else-if="!me" class="blank">登录后才能看到订单。</p>
+      <p v-else-if="orders.length === 0" class="blank">{{ type === 'buy' ? '还没有买过东西，去集市看看' : '还没有人向你下单' }}</p>
+      <article v-for="item in orders" :key="item.id" class="row order-card">
         <div>
           <strong>{{ item.productTitle }}</strong>
+          <span class="pill" :class="tone(item.status)">{{ statusLabel[item.status] || item.status }}</span>
           <p class="meta">
             <span>¥{{ item.amount }}</span>
-            <span>{{ statusLabel[item.status] || item.status }}</span>
-            <span>{{ type === 'buy' ? item.sellerNickname : item.buyerNickname }}</span>
+            <span>{{ type === 'buy' ? `卖家 ${item.sellerNickname || '同学'}` : `买家 ${item.buyerNickname || '同学'}` }}</span>
           </p>
-          <p v-if="item.remark" class="hint">{{ item.remark }}</p>
+          <p v-if="item.remark" class="hint">留言：{{ item.remark }}</p>
         </div>
         <div class="actions">
           <button v-if="type === 'sell' && item.status === 'pending'" class="btn" type="button" @click="act(item.id, 'accept')">接受</button>
@@ -64,7 +80,6 @@ onMounted(load)
           <button v-if="item.status === 'pending' || item.status === 'accepted'" class="btn ghost" type="button" @click="act(item.id, 'cancel', { reason: '暂时不交易' })">取消</button>
         </div>
       </article>
-      <p v-if="!me" class="hint">未登录时无法查看订单。</p>
     </main>
   </div>
 </template>

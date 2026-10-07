@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getUser } from '../api'
+import MiniIcon from './MiniIcon.vue'
 const route = useRoute()
 const router = useRouter()
 const keyword = ref(route.query.keyword || '')
@@ -26,25 +27,27 @@ function search() {
 <template>
   <header class="topbar">
     <a class="brand" href="/market">
-      校集
+      <i class="brand-mark"><MiniIcon name="spark" /></i>
+      飞马市集
       <small>校园里的<br />二手好物集市</small>
     </a>
     <nav class="nav">
-      <a :class="{ current: current('/market') }" href="/market">首页</a>
-      <a href="/market#categories">全部分类</a>
-      <a :class="{ current: current('/map') }" href="/map">校园地图</a>
-      <a :class="{ current: current('/wants') }" href="/wants">求购专区</a>
-      <a :class="{ current: current('/help') }" href="/help">帮助中心</a>
+      <a :class="{ current: current('/market') }" href="/market"><MiniIcon name="home" />首页</a>
+      <a href="/market#categories"><MiniIcon name="grid" />全部分类</a>
+      <a :class="{ current: current('/map') }" href="/map"><MiniIcon name="pin" />校园地图</a>
+      <a :class="{ current: current('/wants') }" href="/wants"><MiniIcon name="want" />求购专区</a>
+      <a :class="{ current: current('/help') }" href="/help"><MiniIcon name="help" />帮助中心</a>
     </nav>
     <form class="top-search" @submit.prevent="search">
+      <MiniIcon name="search" />
       <input v-model="keyword" placeholder="搜索你想要的宝贝" />
       <button class="btn" type="submit">搜索</button>
     </form>
     <div class="tools">
-      <a href="/favorites">♡ 收藏</a>
-      <a :class="{ current: current('/chat') }" href="/chat">消息</a>
-      <a v-if="user" class="me" href="/me">我的</a>
-      <span v-else class="auth-links"><a href="/login">登录</a>/<a href="/register">注册</a></span>
+      <a href="/favorites"><MiniIcon name="heart" />收藏</a>
+      <a :class="{ current: current('/chat') }" href="/chat"><MiniIcon name="chat" />消息</a>
+      <a v-if="user" class="me" href="/me"><MiniIcon name="user" />我的</a>
+      <span v-else class="auth-links"><a href="/login"><MiniIcon name="user" />登录</a>/<a href="/register">注册</a></span>
     </div>
   </header>
 </template>

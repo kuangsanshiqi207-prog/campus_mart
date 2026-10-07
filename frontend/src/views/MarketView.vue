@@ -3,6 +3,7 @@ import { onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import UserBar from '../components/UserBar.vue'
 import CatIcon from '../components/CatIcon.vue'
+import MiniIcon from '../components/MiniIcon.vue'
 import { request } from '../api'
 
 const route = useRoute()
@@ -107,7 +108,7 @@ onMounted(async () => {
     <UserBar />
     <section class="hero-home">
       <div class="hero-copy">
-        <p class="kicker">校园二手集市</p>
+        <p class="kicker"><MiniIcon name="spark" />飞马市集</p>
         <h1>让闲置，<br /><em>在校园里继续发光</em></h1>
         <p class="slogan">发现好物 · 轻松转卖 · 校园见面交易</p>
         <div class="hero-actions">
@@ -115,9 +116,9 @@ onMounted(async () => {
           <a class="btn ghost" href="#goods">去逛逛 <span class="go">→</span></a>
         </div>
         <ul class="trust">
-          <li><i>✓</i><div><b>真实同学</b><span>校园身份认证</span></div></li>
-          <li><i>✓</i><div><b>线下见面</b><span>更安全更放心</span></div></li>
-          <li><i>✓</i><div><b>循环再用</b><span>让好物继续发光</span></div></li>
+          <li><i><MiniIcon name="badge" /></i><div><b>真实同学</b><span>校园身份认证</span></div></li>
+          <li><i><MiniIcon name="meet" /></i><div><b>线下见面</b><span>更安全更放心</span></div></li>
+          <li><i><MiniIcon name="leaf" /></i><div><b>循环再用</b><span>让好物继续发光</span></div></li>
         </ul>
       </div>
       <div class="mosaic-wrap">
@@ -154,7 +155,7 @@ onMounted(async () => {
 
     <section id="goods" class="shelf">
       <div class="shelf-head">
-        <h2>校园热门 <span>同学们都在逛的好物</span></h2>
+        <h2><MiniIcon name="spark" />校园热门 <span>同学们都在逛的好物</span></h2>
         <div class="sorts">
           <button v-for="item in sorts" :key="item.id" :class="{ active: sort === item.id }" type="button" @click="sort = item.id">{{ item.label }}</button>
         </div>
@@ -177,7 +178,7 @@ onMounted(async () => {
               </div>
               <div class="seller">
                 <b><i class="avatar">{{ (item.sellerNickname || '同').slice(0, 1) }}</i>{{ item.sellerNickname || '同学' }} · {{ ago(item.createTime) }}</b>
-                <button type="button" @click.prevent.stop="fav(item)">{{ item.favorited ? '已藏' : '收藏' }} {{ item.favoriteCount || 0 }}</button>
+                <button type="button" @click.prevent.stop="fav(item)"><MiniIcon name="heart" />{{ item.favorited ? '已藏' : '收藏' }} {{ item.favoriteCount || 0 }}</button>
               </div>
             </div>
           </a>
