@@ -1,0 +1,50 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway
+  data:
+    redis:
+      host: 192.168.231.200
+      port: 6379
+      password: 123456
+      database: 0
+      timeout: 3000ms
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: public
+        group: DEFAULT_GROUP
+        ip: 127.0.0.1
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+      routes:
+        # 目前只路由到 mart-server
+        # 后面拆 file-service 时，在它前面加一条 /user/files/** 的路由
+        - id: mart-server
+          uri: lb://mart-server
+          predicates:
+            - Path=/**
+
+# JWT 密钥（必须和 mart-server 一致）
+campus:
+  jwt:
+    user-secret-key: campus-mart-user-secret-key-please-change-in-production-1234567890
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.example: debug
+    org.springframework.cloud.gateway: info

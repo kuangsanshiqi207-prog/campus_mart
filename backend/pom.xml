@@ -20,7 +20,7 @@
         <module>mart-common</module>
         <module>mart-pojo</module>
         <module>mart-server</module>
-
+        <module>campus-cloud</module>
     </modules>
 
     <properties>
@@ -82,8 +82,8 @@
         <pagehelper>2.1.0</pagehelper>
         <aliyun.sdk.oss>3.17.4</aliyun.sdk.oss>
         <knife4j>4.5.0</knife4j>
-        <springdoc>2.8.17</springdoc>
-        <swagger>2.2.47</swagger>
+        <springdoc>2.6.0</springdoc>
+        <swagger>2.2.22</swagger>
         <aspectj>1.9.22</aspectj>
         <jjwt>0.12.6</jjwt>
         <jaxb-api>4.0.2</jaxb-api>
