@@ -19,7 +19,6 @@
     <modules>
         <module>mart-common</module>
         <module>mart-pojo</module>
-        <module>mart-server</module>
         <module>campus-cloud</module>
     </modules>
 

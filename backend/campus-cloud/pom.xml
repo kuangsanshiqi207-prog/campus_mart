@@ -17,6 +17,11 @@
         <module>gateway</module>
         <module>file-api</module>
         <module>file-service</module>
+        <module>user-api</module>
+        <module>user-service</module>
+        <module>message-api</module>
+        <module>message-service</module>
+        <module>biz-service</module>
         <!-- 后面逐步加：
         <module>file-api</module>
         <module>file-service</module>
@@ -80,6 +85,18 @@
                 <groupId>org.example</groupId>
                 <artifactId>file-api</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.example</groupId>
+                <artifactId>user-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.example</groupId>
+                <artifactId>message-api</artifactId>
+                <version>1.0-SNAPSHOT</version>
             </dependency>
 
             <!-- 管理 hutool -->

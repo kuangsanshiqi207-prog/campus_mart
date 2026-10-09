@@ -23,14 +23,31 @@ spring:
         locator:
           enabled: false
       routes:
-        # 目前只路由到 mart-server
-        # 后面拆 file-service 时，在它前面加一条 /user/files/** 的路由
-        - id: mart-server
-          uri: lb://mart-server
+        # ============ 1. user-service（认证 + 个人中心 + 用户管理 + 认证审核）============
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/user/auth/**,/admin/auth/**,/user/profile/**,/user/certification/**,/user/addresses/**,/admin/users/**,/admin/certifications/**
+
+        # ============ 2. file-service（文件上传）============
+        - id: file-service
+          uri: lb://file-service
+          predicates:
+            - Path=/user/files/**
+
+        # ============ 3. message-service（站内信 + 公告 + 私信 + WebSocket）============
+        - id: message-service
+          uri: lb://message-service
+          predicates:
+            - Path=/user/messages/**,/user/announcements/**,/user/chat/**,/ws/**
+
+        # ============ 4. biz-service（商品 + 订单 + 评价 + 举报 + 统计，兜底）============
+        - id: biz-service
+          uri: lb://biz-service
           predicates:
             - Path=/**
 
-# JWT 密钥（必须和 mart-server 一致）
+# JWT 密钥（必须和 user-service、biz-service 一致）
 campus:
   jwt:
     user-secret-key: campus-mart-user-secret-key-please-change-in-production-1234567890
