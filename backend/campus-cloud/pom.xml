@@ -22,6 +22,8 @@
         <module>message-api</module>
         <module>message-service</module>
         <module>biz-service</module>
+        <module>ai-service</module>
+        <module>ai-api</module>
         <!-- 后面逐步加：
         <module>file-api</module>
         <module>file-service</module>
