@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -11,10 +12,20 @@ from fastapi.responses import JSONResponse
 from app.api.v1.router import api_router
 from app.core.exceptions import AppError
 from app.core.logging import setup_logging
+from app.core.nacos import NacosRegistry
 from app.schemas.common import ApiResponse
 
 setup_logging()
 logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    registry = NacosRegistry()
+    registry.start()
+    app.state.nacos_registry = registry
+    yield
+    registry.stop()
 
 
 def create_app() -> FastAPI:
@@ -22,6 +33,7 @@ def create_app() -> FastAPI:
         title="校集 AI 服务",
         description="AI 审核 + AI 客服（FastAPI + LangChain）",
         version="0.1.0",
+        lifespan=lifespan,
     )
 
     app.include_router(api_router)

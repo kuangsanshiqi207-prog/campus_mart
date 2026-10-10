@@ -33,6 +33,17 @@ class Settings(BaseSettings):
     app_port: int = 8000
     log_level: str = "INFO"
 
+    # Nacos 注册中心（默认地址 127.0.0.1:8848）
+    nacos_enabled: bool = True
+    nacos_server_addr: str = "127.0.0.1:8848"
+    nacos_namespace: str = ""
+    nacos_group: str = "DEFAULT_GROUP"
+    nacos_ephemeral: bool = True
+    nacos_heartbeat_interval: int = 5
+    nacos_timeout: int = 5
+    service_name: str = "ai-service"
+    service_ip: str = ""
+
     @property
     def embedding_base_url_resolved(self) -> str:
         return self.embedding_base_url or self.llm_base_url

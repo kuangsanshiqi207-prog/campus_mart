@@ -115,8 +115,23 @@ python scripts/ingest.py
 | `EMBEDDING_MODEL` | 向量模型名 | `text-embedding-3-small` |
 | `CHROMA_PERSIST_DIR` | 向量库目录 | `./data/chroma` |
 | `RAG_TOP_K` | 检索条数 | `4` |
+| `NACOS_ENABLED` | 是否注册到 Nacos | `true` |
+| `NACOS_SERVER_ADDR` | Nacos 地址 | `127.0.0.1:8848` |
+| `NACOS_NAMESPACE` | 命名空间（空=public） | 空 |
+| `NACOS_GROUP` | 分组 | `DEFAULT_GROUP` |
+| `NACOS_EPHEMERAL` | 临时实例（true 需心跳） | `true` |
+| `SERVICE_NAME` | 服务名（Java 侧按此发现） | `ai-service` |
+| `SERVICE_IP` | 注册 IP（空=自动探测） | 空 |
 
 > 换模型只改 `.env`：`LLM_BASE_URL` / `LLM_API_KEY` / `LLM_MODEL`。支持 DeepSeek、通义千问、Moonshot 等所有 OpenAI 兼容服务。AI 审核使用 `function_calling` 方式做结构化输出，请确保所选模型支持工具调用（DeepSeek、Qwen 等均支持）。
+
+## 注册到 Nacos
+
+服务启动时会自动向 Nacos（默认 `127.0.0.1:8848`）注册实例，服务名为 `ai-service`，Java 侧可通过服务名发现并调用。启动日志出现 `已注册到 Nacos：ai-service @ <ip>:8000` 即成功。
+
+- 默认以**临时实例**（`ephemeral=true`）注册，后台每 5 秒发送心跳，关闭时自动注销。
+- 本地暂时没起 Nacos 也不影响启动：注册失败只打日志、不阻断服务。
+- 想临时关闭注册：`.env` 里设 `NACOS_ENABLED=false`。
 
 ## 测试
 
