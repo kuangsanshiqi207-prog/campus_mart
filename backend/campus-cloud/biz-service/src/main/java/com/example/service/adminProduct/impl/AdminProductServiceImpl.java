@@ -1,5 +1,6 @@
 package com.example.service.adminProduct.impl;
 
+import com.example.api.ai.AiFeignClient;
 import com.example.api.message.MessageFeignClient;
 import com.example.api.user.UserFeignClient;
 import com.example.constant.MessageConstant;
@@ -8,6 +9,7 @@ import com.example.constant.ProductConstant;
 import com.example.dto.adminProduct.AdminProductQueryDTO;
 import com.example.dto.adminProduct.OfflineDTO;
 import com.example.dto.adminProduct.ProductAuditDTO;
+import com.example.dto.ai.AiAuditDTO;
 import com.example.entity.Category;
 import com.example.entity.Product;
 import com.example.entity.ProductImage;
@@ -18,6 +20,7 @@ import com.example.mapper.product.ProductMapper;
 import com.example.result.PageResult;
 import com.example.result.Result;
 import com.example.service.adminProduct.AdminProductService;
+import com.example.vo.ai.AiAuditVO;
 import com.example.vo.product.ProductDetailVO;
 import com.example.vo.product.ProductVO;
 import com.example.vo.product.SellerVO;
@@ -28,7 +31,9 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -41,6 +46,7 @@ public class AdminProductServiceImpl implements AdminProductService {
     private final CategoryMapper categoryMapper;
     private final UserFeignClient userFeignClient;              // ← 改
     private final MessageFeignClient messageFeignClient;        // ← 改
+    private final AiFeignClient aiFeignClient;
 
     // ==================== 商品列表 ====================
 
@@ -130,6 +136,35 @@ public class AdminProductServiceImpl implements AdminProductService {
         }
     }
 
+    // ==================== AI 辅助审核 ====================
+
+    @Override
+    public AiAuditVO aiAudit(Long id) {
+        Product product = productMapper.getById(id);
+        if (product == null) {
+            throw new BaseException(MessageConstant.PRODUCT_NOT_FOUND);
+        }
+
+        AiAuditDTO dto = new AiAuditDTO();
+        dto.setAuditType("product");
+
+        Map<String, String> textFields = new HashMap<>();
+        putIfPresent(textFields, "title", product.getTitle());
+        putIfPresent(textFields, "description", product.getDescription());
+        putIfPresent(textFields, "price", product.getPrice() == null ? null : product.getPrice().toPlainString());
+        putIfPresent(textFields, "quality", product.getQuality());
+        putIfPresent(textFields, "tradeType", product.getTradeType());
+        putIfPresent(textFields, "tradePlace", product.getTradePlace());
+        dto.setTextFields(textFields);
+
+        List<String> imageUrls = productImageMapper.listByProductId(id).stream()
+                .map(ProductImage::getUrl)
+                .collect(Collectors.toList());
+        dto.setImageUrls(imageUrls);
+
+        return callAi(dto);
+    }
+
     // ==================== 强制下架 ====================
 
     @Override
@@ -170,6 +205,24 @@ public class AdminProductServiceImpl implements AdminProductService {
     }
 
     // ==================== 私有方法 ====================
+
+    private AiAuditVO callAi(AiAuditDTO dto) {
+        try {
+            Result<AiAuditVO> result = aiFeignClient.audit(dto);
+            if (result != null && result.getCode() != null && result.getCode() == 1 && result.getData() != null) {
+                return result.getData();
+            }
+        } catch (Exception e) {
+            log.warn("AI 审核调用失败：{}", e.getMessage());
+        }
+        return null;
+    }
+
+    private void putIfPresent(Map<String, String> map, String key, String value) {
+        if (value != null && !value.isBlank()) {
+            map.put(key, value);
+        }
+    }
 
     private ProductVO toProductVO(Product product) {
         ProductVO vo = new ProductVO();

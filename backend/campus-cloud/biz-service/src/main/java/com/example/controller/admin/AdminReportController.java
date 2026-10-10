@@ -7,6 +7,7 @@ import com.example.dto.reportManage.ReportHandleDTO;
 import com.example.result.PageResult;
 import com.example.result.Result;
 import com.example.service.reportManage.AdminReportService;
+import com.example.vo.ai.AiAuditVO;
 import com.example.vo.report.ReportVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -36,6 +37,14 @@ public class AdminReportController {
     public Result<ReportVO> reportDetail(
             @Parameter(description = "举报ID") @PathVariable Long id) {
         return Result.success(adminReportService.getReportDetail(id));
+    }
+
+    @Operation(summary = "AI 辅助审核")
+    @GetMapping("/reports/{id}/ai-audit")
+    public Result<AiAuditVO> aiAudit(
+            @Parameter(description = "举报ID") @PathVariable Long id) {
+        AiAuditVO vo = adminReportService.aiAudit(id);
+        return vo == null ? Result.error("AI 审核暂不可用，请人工审核") : Result.success(vo);
     }
 
     @Operation(summary = "处理举报")

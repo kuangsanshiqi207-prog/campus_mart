@@ -6,6 +6,7 @@ import com.example.dto.adminProduct.ProductAuditDTO;
 import com.example.result.PageResult;
 import com.example.result.Result;
 import com.example.service.adminProduct.AdminProductService;
+import com.example.vo.ai.AiAuditVO;
 import com.example.vo.product.ProductDetailVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -42,6 +43,14 @@ public class AdminProductController {
             @RequestBody @Valid ProductAuditDTO dto) {
         adminProductService.auditProduct(id, dto);
         return Result.success();
+    }
+
+    @Operation(summary = "AI 辅助审核")
+    @GetMapping("/{id}/ai-audit")
+    public Result<AiAuditVO> aiAudit(
+            @Parameter(description = "商品ID") @PathVariable Long id) {
+        AiAuditVO vo = adminProductService.aiAudit(id);
+        return vo == null ? Result.error("AI 审核暂不可用，请人工审核") : Result.success(vo);
     }
 
     @Operation(summary = "强制下架")

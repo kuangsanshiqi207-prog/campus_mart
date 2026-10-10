@@ -7,11 +7,13 @@ import com.example.constant.MessageConstant;
 import com.example.constant.ProductConstant;
 import com.example.constant.UserConstant;
 import com.example.context.BaseContext;
+import com.example.dto.ai.AiAuditDTO;
 import com.example.dto.product.MyProductQueryDTO;
 import com.example.dto.product.ProductCreateDTO;
 import com.example.entity.Category;
 import com.example.entity.Product;
 import com.example.entity.ProductImage;
+import com.example.event.ProductAuditEvent;
 import com.example.exception.BaseException;
 import com.example.mapper.product.CategoryMapper;
 import com.example.mapper.product.ProductImageMapper;
@@ -28,12 +30,15 @@ import com.example.vo.user.UserVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -46,6 +51,7 @@ public class ShopServiceImpl implements ShopService {
     private final CategoryMapper categoryMapper;
     private final UserFeignClient userFeignClient;              // ← 改
     private final FileFeignClient fileFeignClient;              // ← 改
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     // ==================== 发布商品 ====================
 
@@ -84,8 +90,8 @@ public class ShopServiceImpl implements ShopService {
                 .quality(dto.getQuality())
                 .tradeType(dto.getTradeType())
                 .tradePlace(dto.getTradePlace())
-                .status(ProductConstant.STATUS_ON_SALE)
-                .auditStatus(ProductConstant.AUDIT_APPROVED)
+                .status(ProductConstant.STATUS_OFFLINE)
+                .auditStatus(ProductConstant.AUDIT_PENDING)
                 .viewCount(0)
                 .favoriteCount(0)
                 .createTime(LocalDateTime.now())
@@ -94,6 +100,9 @@ public class ShopServiceImpl implements ShopService {
         productMapper.insert(product);
 
         saveProductImages(productId, imageUrls, dto.getImageFileIds());
+
+        // 事务提交后异步触发 AI 审核
+        publishAuditEvent(product, imageUrls);
 
         return productId;
     }
@@ -140,12 +149,18 @@ public class ShopServiceImpl implements ShopService {
                 .categoryId(dto.getCategoryId())
                 .tradeType(dto.getTradeType())
                 .tradePlace(dto.getTradePlace())
-                .auditStatus(ProductConstant.AUDIT_APPROVED)
                 .build();
         productMapper.update(update);
 
+        // 重新进入审核（下架 + 审核中）
+        productMapper.updateAuditStatus(id, ProductConstant.AUDIT_PENDING, null);
+        productMapper.updateStatus(id, ProductConstant.STATUS_OFFLINE);
+
         productImageMapper.deleteByProductId(id);
         saveProductImages(id, imageUrls, dto.getImageFileIds());
+
+        // 事务提交后异步触发 AI 审核
+        publishAuditEvent(update, imageUrls);
     }
 
     // ==================== 删除商品 ====================
@@ -294,6 +309,34 @@ public class ShopServiceImpl implements ShopService {
     }
 
     // ==================== 私有方法 ====================
+
+    private void publishAuditEvent(Product product, List<String> imageUrls) {
+        applicationEventPublisher.publishEvent(
+                new ProductAuditEvent(product.getId(), buildAiAuditDTO(product, imageUrls)));
+    }
+
+    private AiAuditDTO buildAiAuditDTO(Product product, List<String> imageUrls) {
+        AiAuditDTO dto = new AiAuditDTO();
+        dto.setAuditType("product");
+
+        Map<String, String> textFields = new HashMap<>();
+        putIfPresent(textFields, "title", product.getTitle());
+        putIfPresent(textFields, "description", product.getDescription());
+        putIfPresent(textFields, "price", product.getPrice() == null ? null : product.getPrice().toPlainString());
+        putIfPresent(textFields, "quality", product.getQuality());
+        putIfPresent(textFields, "tradeType", product.getTradeType());
+        putIfPresent(textFields, "tradePlace", product.getTradePlace());
+        dto.setTextFields(textFields);
+
+        dto.setImageUrls(imageUrls == null ? List.of() : imageUrls);
+        return dto;
+    }
+
+    private void putIfPresent(Map<String, String> map, String key, String value) {
+        if (value != null && !value.isBlank()) {
+            map.put(key, value);
+        }
+    }
 
     private void saveProductImages(Long productId, List<String> urls, List<Long> fileIds) {
         if (urls.isEmpty()) return;

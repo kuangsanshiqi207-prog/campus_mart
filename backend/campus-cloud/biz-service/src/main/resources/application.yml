@@ -31,6 +31,12 @@ spring:
         server-addr: ${nacos.server-addr}
         namespace: ${nacos.namespace}
         group: ${nacos.group}
+    openfeign:
+      client:
+        config:
+          ai-service:
+            connect-timeout: 3000
+            read-timeout: 15000
 # ==================== JWT ====================
 campus:
   jwt:

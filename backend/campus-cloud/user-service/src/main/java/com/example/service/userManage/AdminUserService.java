@@ -5,6 +5,7 @@ import com.example.dto.userManage.CertificationAuditDTO;
 import com.example.dto.userManage.CreditAdjustDTO;
 import com.example.dto.userManage.UserStatusDTO;
 import com.example.result.PageResult;
+import com.example.vo.ai.AiAuditVO;
 import com.example.vo.userManage.UserDetailVO;
 import com.example.vo.user.CertificationVO;
 import com.example.vo.user.UserVO;
@@ -20,6 +21,8 @@ public interface AdminUserService {
     void adjustCredit(Long id, CreditAdjustDTO dto);
 
     PageResult listCertifications(String status, Integer pageNum, Integer pageSize);
+
+    AiAuditVO aiAuditCertification(Long id);
 
     void auditCertification(Long id, CertificationAuditDTO dto);
 }

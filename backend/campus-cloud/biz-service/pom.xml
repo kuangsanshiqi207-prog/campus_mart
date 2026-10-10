@@ -37,6 +37,10 @@
             <groupId>org.example</groupId>
             <artifactId>file-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.example</groupId>
+            <artifactId>ai-api</artifactId>
+        </dependency>
 
         <!-- ==================== Spring Boot ==================== -->
         <dependency>

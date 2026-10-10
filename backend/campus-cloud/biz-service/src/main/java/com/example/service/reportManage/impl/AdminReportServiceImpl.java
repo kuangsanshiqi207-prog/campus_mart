@@ -1,11 +1,13 @@
 package com.example.service.reportManage.impl;
 
+import com.example.api.ai.AiFeignClient;
 import com.example.api.message.MessageFeignClient;
 import com.example.api.user.UserFeignClient;
 import com.example.constant.MessageConstant;
 import com.example.constant.NotificationConstant;
 import com.example.constant.ReportConstant;
 import com.example.context.BaseContext;
+import com.example.dto.ai.AiAuditDTO;
 import com.example.dto.reportManage.AdminAppealQueryDTO;
 import com.example.dto.reportManage.AdminReportQueryDTO;
 import com.example.dto.reportManage.AppealHandleDTO;
@@ -20,6 +22,7 @@ import com.example.mapper.report.ReportMapper;
 import com.example.result.PageResult;
 import com.example.result.Result;
 import com.example.service.reportManage.AdminReportService;
+import com.example.vo.ai.AiAuditVO;
 import com.example.vo.report.AppealVO;
 import com.example.vo.report.ReportVO;
 import com.example.vo.user.UserVO;
@@ -29,7 +32,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -42,6 +48,7 @@ public class AdminReportServiceImpl implements AdminReportService {
     private final ProductMapper productMapper;
     private final UserFeignClient userFeignClient;              // ← 改
     private final MessageFeignClient messageFeignClient;        // ← 改
+    private final AiFeignClient aiFeignClient;
 
     // ==================== 举报列表 ====================
 
@@ -70,6 +77,27 @@ public class AdminReportServiceImpl implements AdminReportService {
             throw new BaseException(MessageConstant.REPORT_NOT_FOUND);
         }
         return toReportVO(report);
+    }
+
+    // ==================== AI 辅助审核 ====================
+
+    @Override
+    public AiAuditVO aiAudit(Long id) {
+        Report report = reportMapper.getById(id);
+        if (report == null) {
+            throw new BaseException(MessageConstant.REPORT_NOT_FOUND);
+        }
+
+        AiAuditDTO dto = new AiAuditDTO();
+        dto.setAuditType("report");
+
+        Map<String, String> textFields = new HashMap<>();
+        putIfPresent(textFields, "reason", report.getReason());
+        putIfPresent(textFields, "description", report.getDescription());
+        dto.setTextFields(textFields);
+        dto.setImageUrls(splitImages(report.getImages()));
+
+        return callAi(dto);
     }
 
     // ==================== 处理举报 ====================
@@ -168,6 +196,34 @@ public class AdminReportServiceImpl implements AdminReportService {
     }
 
     // ==================== 私有方法 ====================
+
+    private AiAuditVO callAi(AiAuditDTO dto) {
+        try {
+            Result<AiAuditVO> result = aiFeignClient.audit(dto);
+            if (result != null && result.getCode() != null && result.getCode() == 1 && result.getData() != null) {
+                return result.getData();
+            }
+        } catch (Exception e) {
+            log.warn("AI 审核调用失败：{}", e.getMessage());
+        }
+        return null;
+    }
+
+    private void putIfPresent(Map<String, String> map, String key, String value) {
+        if (value != null && !value.isBlank()) {
+            map.put(key, value);
+        }
+    }
+
+    private List<String> splitImages(String images) {
+        if (images == null || images.isBlank()) {
+            return List.of();
+        }
+        return Arrays.stream(images.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+    }
 
     private void executeAction(Report report, String action, String reason) {
         if (ReportConstant.ACTION_OFFLINE.equals(action)) {

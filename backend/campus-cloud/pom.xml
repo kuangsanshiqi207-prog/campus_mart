@@ -89,6 +89,13 @@
                 <version>${project.version}</version>
             </dependency>
 
+            <!-- 管理 ai-api -->
+            <dependency>
+                <groupId>org.example</groupId>
+                <artifactId>ai-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.example</groupId>
                 <artifactId>user-api</artifactId>

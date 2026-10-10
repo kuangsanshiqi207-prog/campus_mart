@@ -4,6 +4,7 @@ import com.example.dto.adminProduct.AdminProductQueryDTO;
 import com.example.dto.adminProduct.OfflineDTO;
 import com.example.dto.adminProduct.ProductAuditDTO;
 import com.example.result.PageResult;
+import com.example.vo.ai.AiAuditVO;
 import com.example.vo.product.ProductDetailVO;
 
 public interface AdminProductService {
@@ -11,6 +12,8 @@ public interface AdminProductService {
     PageResult listProducts(AdminProductQueryDTO query);
 
     ProductDetailVO getProductDetail(Long id);
+
+    AiAuditVO aiAudit(Long id);
 
     void auditProduct(Long id, ProductAuditDTO dto);
 

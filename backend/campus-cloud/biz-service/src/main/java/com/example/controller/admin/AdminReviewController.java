@@ -4,6 +4,7 @@ import com.example.dto.reviewManage.AdminReviewQueryDTO;
 import com.example.result.PageResult;
 import com.example.result.Result;
 import com.example.service.reviewManage.AdminReviewService;
+import com.example.vo.ai.AiAuditVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,6 +23,14 @@ public class AdminReviewController {
     @GetMapping
     public Result<PageResult> list(AdminReviewQueryDTO query) {
         return Result.success(adminReviewService.listReviews(query));
+    }
+
+    @Operation(summary = "AI 辅助审核")
+    @GetMapping("/{id}/ai-audit")
+    public Result<AiAuditVO> aiAudit(
+            @Parameter(description = "评价ID") @PathVariable Long id) {
+        AiAuditVO vo = adminReviewService.aiAudit(id);
+        return vo == null ? Result.error("AI 审核暂不可用，请人工审核") : Result.success(vo);
     }
 
     @Operation(summary = "删除违规评价")

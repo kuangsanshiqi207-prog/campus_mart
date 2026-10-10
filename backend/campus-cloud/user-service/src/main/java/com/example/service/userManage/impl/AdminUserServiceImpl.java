@@ -1,11 +1,13 @@
 package com.example.service.userManage.impl;
 
 import cn.hutool.core.util.IdUtil;
+import com.example.api.ai.AiFeignClient;
 import com.example.api.message.MessageFeignClient;
 import com.example.constant.MessageConstant;
 import com.example.constant.NotificationConstant;
 import com.example.constant.UserConstant;
 import com.example.context.BaseContext;
+import com.example.dto.ai.AiAuditDTO;
 import com.example.dto.userManage.AdminUserQueryDTO;
 import com.example.dto.userManage.CertificationAuditDTO;
 import com.example.dto.userManage.CreditAdjustDTO;
@@ -18,7 +20,9 @@ import com.example.mapper.stats.CreditLogMapper;
 import com.example.mapper.user.UserCertificationMapper;
 import com.example.mapper.user.UserMapper;
 import com.example.result.PageResult;
+import com.example.result.Result;
 import com.example.service.userManage.AdminUserService;
+import com.example.vo.ai.AiAuditVO;
 import com.example.vo.user.CertificationVO;
 import com.example.vo.user.UserVO;
 import com.example.vo.userManage.UserDetailVO;
@@ -29,7 +33,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -41,6 +48,7 @@ public class AdminUserServiceImpl implements AdminUserService {
     private final UserCertificationMapper certificationMapper;
     private final CreditLogMapper creditLogMapper;
     private final MessageFeignClient messageFeignClient;        // ← 改
+    private final AiFeignClient aiFeignClient;
 
     // ==================== 用户列表 ====================
 
@@ -201,7 +209,52 @@ public class AdminUserServiceImpl implements AdminUserService {
         }
     }
 
+    // ==================== AI 辅助审核认证 ====================
+
+    @Override
+    public AiAuditVO aiAuditCertification(Long id) {
+        UserCertification cert = certificationMapper.getById(id);
+        if (cert == null) {
+            throw new BaseException(MessageConstant.CERTIFICATION_NOT_FOUND);
+        }
+
+        AiAuditDTO dto = new AiAuditDTO();
+        dto.setAuditType("certification");
+
+        Map<String, String> textFields = new HashMap<>();
+        putIfPresent(textFields, "school", cert.getSchool());
+        putIfPresent(textFields, "studentNo", cert.getStudentNo());
+        putIfPresent(textFields, "realName", cert.getRealName());
+        dto.setTextFields(textFields);
+
+        List<String> imageUrls = new ArrayList<>();
+        if (cert.getCardImage() != null && !cert.getCardImage().isBlank()) {
+            imageUrls.add(cert.getCardImage());
+        }
+        dto.setImageUrls(imageUrls);
+
+        return callAi(dto);
+    }
+
     // ==================== 私有方法 ====================
+
+    private AiAuditVO callAi(AiAuditDTO dto) {
+        try {
+            Result<AiAuditVO> result = aiFeignClient.audit(dto);
+            if (result != null && result.getCode() != null && result.getCode() == 1 && result.getData() != null) {
+                return result.getData();
+            }
+        } catch (Exception e) {
+            log.warn("AI 审核调用失败：{}", e.getMessage());
+        }
+        return null;
+    }
+
+    private void putIfPresent(Map<String, String> map, String key, String value) {
+        if (value != null && !value.isBlank()) {
+            map.put(key, value);
+        }
+    }
 
     private UserVO toUserVO(User user) {
         UserVO vo = new UserVO();
