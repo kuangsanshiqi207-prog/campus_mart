@@ -2,10 +2,10 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { request } from '../api'
-import CampusPanel from '../components/CampusPanel.vue'
 
 const router = useRouter()
 const form = ref({ username: '', password: '', phone: '', code: '' })
+const showPassword = ref(false)
 const sentCode = ref('')
 const error = ref('')
 const loading = ref(false)
@@ -42,28 +42,34 @@ async function submit() {
 </script>
 
 <template>
-  <main class="gate">
-    <CampusPanel
-      title="先成为这里的同学。"
-      lead="注册后就能发布闲置、收藏心仪的旧物，并和卖家约时间面交。验证码会直接显示在表单里。"
-    />
-    <section class="form-wrap">
-      <form class="form" @submit.prevent="submit">
-        <p class="eyebrow">新同学</p>
-        <h2>注册账号</h2>
-        <label class="field"><span>用户名</span><input v-model="form.username" /></label>
-        <label class="field"><span>密码</span><input v-model="form.password" type="password" /></label>
-        <label class="field"><span>手机号</span><input v-model="form.phone" /></label>
-        <label class="field">
-          <span>验证码</span>
-          <input v-model="form.code" />
+    <form class="auth-form" @submit.prevent="submit">
+      <h2>创建账号</h2>
+      <p class="auth-lead">注册后就可以在飞马市集发布和收藏</p>
+      <label class="auth-field">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3" /><path d="M6 19c1.2-3 3.2-4.5 6-4.5S16.8 16 18 19" /></svg>
+        <input v-model="form.username" autocomplete="username" placeholder="用户名" />
+      </label>
+      <label class="auth-field">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="10" width="12" height="9" rx="2" /><path d="M9 10V8a3 3 0 0 1 6 0v2" /></svg>
+        <input v-model="form.password" :type="showPassword ? 'text' : 'password'" autocomplete="new-password" placeholder="密码" />
+        <button class="eye" type="button" :aria-label="showPassword ? '隐藏密码' : '显示密码'" @click="showPassword = !showPassword">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z" /><circle cx="12" cy="12" r="2.5" /></svg>
+        </button>
+      </label>
+      <label class="auth-field">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="3" width="8" height="18" rx="2" /><path d="M11 18h2" /></svg>
+        <input v-model="form.phone" inputmode="numeric" placeholder="手机号" />
+      </label>
+      <div class="auth-code">
+        <label class="auth-field">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="12" rx="2" /><path d="M8 12h8" /></svg>
+          <input v-model="form.code" placeholder="验证码" />
         </label>
-        <button class="btn ghost" type="button" @click="sendCode">获取验证码</button>
-        <p v-if="sentCode" class="hint">本次验证码 {{ sentCode }}</p>
-        <p class="form-error">{{ error }}</p>
-        <button class="btn" type="submit" :disabled="loading">{{ loading ? '提交中' : '注册并去登录' }}</button>
-        <p class="hint"><a href="/login">已有账号</a></p>
-      </form>
-    </section>
-  </main>
+        <button class="code-btn" type="button" @click="sendCode">获取验证码</button>
+      </div>
+      <p v-if="sentCode" class="auth-lead">本次验证码是 {{ sentCode }}，已经填进输入框</p>
+      <p class="form-error">{{ error }}</p>
+      <button class="auth-submit" type="submit" :disabled="loading">{{ loading ? '提交中' : '注册' }}</button>
+      <p class="auth-switch">已有账号？<router-link to="/login">去登录</router-link></p>
+    </form>
 </template>

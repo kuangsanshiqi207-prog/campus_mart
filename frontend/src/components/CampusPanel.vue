@@ -21,7 +21,7 @@ const goods = [
 <template>
   <section class="campus">
     <div>
-      <p class="mark">校园集市 · 二手交易</p>
+      <p class="mark">飞马市集 · 二手交易</p>
       <h1>{{ title }}</h1>
       <p class="lede">{{ lead }}</p>
     </div>
