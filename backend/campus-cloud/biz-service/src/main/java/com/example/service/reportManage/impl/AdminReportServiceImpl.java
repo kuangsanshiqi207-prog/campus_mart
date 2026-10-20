@@ -1,6 +1,6 @@
 package com.example.service.reportManage.impl;
 
-import com.example.api.ai.AiFeignClient;
+import com.example.api.ai.AiAuditSupport;
 import com.example.api.message.MessageFeignClient;
 import com.example.api.user.UserFeignClient;
 import com.example.constant.MessageConstant;
@@ -32,7 +32,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +47,7 @@ public class AdminReportServiceImpl implements AdminReportService {
     private final ProductMapper productMapper;
     private final UserFeignClient userFeignClient;              // ← 改
     private final MessageFeignClient messageFeignClient;        // ← 改
-    private final AiFeignClient aiFeignClient;
+    private final AiAuditSupport aiAuditSupport;
 
     // ==================== 举报列表 ====================
 
@@ -92,12 +91,12 @@ public class AdminReportServiceImpl implements AdminReportService {
         dto.setAuditType("report");
 
         Map<String, String> textFields = new HashMap<>();
-        putIfPresent(textFields, "reason", report.getReason());
-        putIfPresent(textFields, "description", report.getDescription());
+        aiAuditSupport.putIfPresent(textFields, "reason", report.getReason());
+        aiAuditSupport.putIfPresent(textFields, "description", report.getDescription());
         dto.setTextFields(textFields);
-        dto.setImageUrls(splitImages(report.getImages()));
+        dto.setImageUrls(aiAuditSupport.splitImages(report.getImages()));
 
-        return callAi(dto);
+        return aiAuditSupport.callAudit(dto);
     }
 
     // ==================== 处理举报 ====================
@@ -196,34 +195,6 @@ public class AdminReportServiceImpl implements AdminReportService {
     }
 
     // ==================== 私有方法 ====================
-
-    private AiAuditVO callAi(AiAuditDTO dto) {
-        try {
-            Result<AiAuditVO> result = aiFeignClient.audit(dto);
-            if (result != null && result.getCode() != null && result.getCode() == 1 && result.getData() != null) {
-                return result.getData();
-            }
-        } catch (Exception e) {
-            log.warn("AI 审核调用失败：{}", e.getMessage());
-        }
-        return null;
-    }
-
-    private void putIfPresent(Map<String, String> map, String key, String value) {
-        if (value != null && !value.isBlank()) {
-            map.put(key, value);
-        }
-    }
-
-    private List<String> splitImages(String images) {
-        if (images == null || images.isBlank()) {
-            return List.of();
-        }
-        return Arrays.stream(images.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .collect(Collectors.toList());
-    }
 
     private void executeAction(Report report, String action, String reason) {
         if (ReportConstant.ACTION_OFFLINE.equals(action)) {

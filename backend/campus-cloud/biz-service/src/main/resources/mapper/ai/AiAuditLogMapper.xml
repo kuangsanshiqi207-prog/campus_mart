@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.ai.AiAuditLogMapper">
+
+    <insert id="insert" parameterType="com.example.entity.AiAuditLog">
+        INSERT INTO ai_audit_log (
+            id, audit_type, biz_id, passed, reason,
+            risk_category, risk_level, suggested_action, create_time
+        ) VALUES (
+                     #{id}, #{auditType}, #{bizId}, #{passed}, #{reason},
+                     #{riskCategory}, #{riskLevel}, #{suggestedAction}, #{createTime}
+                 )
+    </insert>
+
+</mapper>

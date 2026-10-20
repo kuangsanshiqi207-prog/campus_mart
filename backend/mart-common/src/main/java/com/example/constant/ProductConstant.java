@@ -10,6 +10,7 @@ public class ProductConstant {
     public static final String STATUS_RESERVED = "reserved";
     public static final String STATUS_SOLD = "sold";
     public static final String STATUS_OFFLINE = "offline";
+    public static final String STATUS_AUDITING = "auditing";
 
     // ==================== 商品审核状态 ====================
     public static final String AUDIT_PENDING = "pending";

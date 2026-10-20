@@ -1,6 +1,6 @@
 package com.example.service.adminProduct.impl;
 
-import com.example.api.ai.AiFeignClient;
+import com.example.api.ai.AiAuditSupport;
 import com.example.api.message.MessageFeignClient;
 import com.example.api.user.UserFeignClient;
 import com.example.constant.MessageConstant;
@@ -46,7 +46,7 @@ public class AdminProductServiceImpl implements AdminProductService {
     private final CategoryMapper categoryMapper;
     private final UserFeignClient userFeignClient;              // ← 改
     private final MessageFeignClient messageFeignClient;        // ← 改
-    private final AiFeignClient aiFeignClient;
+    private final AiAuditSupport aiAuditSupport;
 
     // ==================== 商品列表 ====================
 
@@ -117,7 +117,7 @@ public class AdminProductServiceImpl implements AdminProductService {
         }
 
         if ("pass".equals(dto.getResult())) {
-            productMapper.updateAudit(id, ProductConstant.AUDIT_APPROVED, null);
+            productMapper.updateAuditResult(id, ProductConstant.AUDIT_APPROVED, null, ProductConstant.STATUS_ON_SALE);
 
             messageFeignClient.send(product.getSellerId(),
                     NotificationConstant.TYPE_AUDIT,
@@ -125,8 +125,7 @@ public class AdminProductServiceImpl implements AdminProductService {
                     "您发布的商品【" + product.getTitle() + "】已审核通过。",
                     id);
         } else {
-            productMapper.updateAudit(id, ProductConstant.AUDIT_REJECTED, dto.getReason());
-            productMapper.updateStatus(id, ProductConstant.STATUS_OFFLINE);
+            productMapper.updateAuditResult(id, ProductConstant.AUDIT_REJECTED, dto.getReason(), ProductConstant.STATUS_OFFLINE);
 
             messageFeignClient.send(product.getSellerId(),
                     NotificationConstant.TYPE_AUDIT,
@@ -149,12 +148,12 @@ public class AdminProductServiceImpl implements AdminProductService {
         dto.setAuditType("product");
 
         Map<String, String> textFields = new HashMap<>();
-        putIfPresent(textFields, "title", product.getTitle());
-        putIfPresent(textFields, "description", product.getDescription());
-        putIfPresent(textFields, "price", product.getPrice() == null ? null : product.getPrice().toPlainString());
-        putIfPresent(textFields, "quality", product.getQuality());
-        putIfPresent(textFields, "tradeType", product.getTradeType());
-        putIfPresent(textFields, "tradePlace", product.getTradePlace());
+        aiAuditSupport.putIfPresent(textFields, "title", product.getTitle());
+        aiAuditSupport.putIfPresent(textFields, "description", product.getDescription());
+        aiAuditSupport.putIfPresent(textFields, "price", product.getPrice() == null ? null : product.getPrice().toPlainString());
+        aiAuditSupport.putIfPresent(textFields, "quality", product.getQuality());
+        aiAuditSupport.putIfPresent(textFields, "tradeType", product.getTradeType());
+        aiAuditSupport.putIfPresent(textFields, "tradePlace", product.getTradePlace());
         dto.setTextFields(textFields);
 
         List<String> imageUrls = productImageMapper.listByProductId(id).stream()
@@ -162,7 +161,7 @@ public class AdminProductServiceImpl implements AdminProductService {
                 .collect(Collectors.toList());
         dto.setImageUrls(imageUrls);
 
-        return callAi(dto);
+        return aiAuditSupport.callAudit(dto);
     }
 
     // ==================== 强制下架 ====================
@@ -205,24 +204,6 @@ public class AdminProductServiceImpl implements AdminProductService {
     }
 
     // ==================== 私有方法 ====================
-
-    private AiAuditVO callAi(AiAuditDTO dto) {
-        try {
-            Result<AiAuditVO> result = aiFeignClient.audit(dto);
-            if (result != null && result.getCode() != null && result.getCode() == 1 && result.getData() != null) {
-                return result.getData();
-            }
-        } catch (Exception e) {
-            log.warn("AI 审核调用失败：{}", e.getMessage());
-        }
-        return null;
-    }
-
-    private void putIfPresent(Map<String, String> map, String key, String value) {
-        if (value != null && !value.isBlank()) {
-            map.put(key, value);
-        }
-    }
 
     private ProductVO toProductVO(Product product) {
         ProductVO vo = new ProductVO();

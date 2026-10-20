@@ -1,13 +1,14 @@
 package com.example.event;
 
-import com.example.api.ai.AiFeignClient;
+import cn.hutool.core.util.IdUtil;
+import com.example.api.ai.AiAuditSupport;
 import com.example.api.message.MessageFeignClient;
 import com.example.constant.NotificationConstant;
 import com.example.constant.ProductConstant;
-import com.example.dto.ai.AiAuditDTO;
+import com.example.entity.AiAuditLog;
 import com.example.entity.Product;
+import com.example.mapper.ai.AiAuditLogMapper;
 import com.example.mapper.product.ProductMapper;
-import com.example.result.Result;
 import com.example.vo.ai.AiAuditVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
+
+import java.time.LocalDateTime;
 
 /**
  * 商品异步 AI 审核监听器。
@@ -27,14 +30,15 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class ProductAuditEventListener {
 
-    private final AiFeignClient aiFeignClient;
+    private final AiAuditSupport aiAuditSupport;
     private final ProductMapper productMapper;
+    private final AiAuditLogMapper aiAuditLogMapper;
     private final MessageFeignClient messageFeignClient;
 
-    @Async("aiAuditExecutor")
+    @Async("asyncExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onProductAudit(ProductAuditEvent event) {
-        AiAuditVO vo = callAi(event.getDto());
+        AiAuditVO vo = aiAuditSupport.callAudit(event.getDto());
         if (vo == null) {
             // AI 无结果（超时/异常）：保持 pending，等管理员审核
             log.warn("商品 {} AI 审核无结果，保持审核中状态", event.getProductId());
@@ -47,29 +51,37 @@ public class ProductAuditEventListener {
         }
 
         if (Boolean.TRUE.equals(vo.getPassed())) {
-            productMapper.updateAuditStatus(event.getProductId(), ProductConstant.AUDIT_APPROVED, null);
-            productMapper.updateStatus(event.getProductId(), ProductConstant.STATUS_ON_SALE);
+            productMapper.updateAuditResult(event.getProductId(),
+                    ProductConstant.AUDIT_APPROVED, null, ProductConstant.STATUS_ON_SALE);
             messageFeignClient.send(product.getSellerId(), NotificationConstant.TYPE_AUDIT,
                     "商品审核通过",
                     "您发布的商品【" + product.getTitle() + "】已审核通过。", event.getProductId());
         } else {
-            productMapper.updateAuditStatus(event.getProductId(), ProductConstant.AUDIT_REJECTED, vo.getReason());
-            productMapper.updateStatus(event.getProductId(), ProductConstant.STATUS_OFFLINE);
+            productMapper.updateAuditResult(event.getProductId(),
+                    ProductConstant.AUDIT_REJECTED, vo.getReason(), ProductConstant.STATUS_OFFLINE);
             messageFeignClient.send(product.getSellerId(), NotificationConstant.TYPE_AUDIT,
                     "商品审核未通过",
                     "您发布的商品【" + product.getTitle() + "】未通过审核，原因：" + vo.getReason(), event.getProductId());
         }
+
+        saveAuditLog(event.getProductId(), vo);
     }
 
-    private AiAuditVO callAi(AiAuditDTO dto) {
+    private void saveAuditLog(Long productId, AiAuditVO vo) {
         try {
-            Result<AiAuditVO> result = aiFeignClient.audit(dto);
-            if (result != null && result.getCode() != null && result.getCode() == 1 && result.getData() != null) {
-                return result.getData();
-            }
+            aiAuditLogMapper.insert(AiAuditLog.builder()
+                    .id(IdUtil.getSnowflakeNextId())
+                    .auditType("product")
+                    .bizId(productId)
+                    .passed(vo.getPassed())
+                    .reason(vo.getReason())
+                    .riskCategory(vo.getRiskCategory())
+                    .riskLevel(vo.getRiskLevel())
+                    .suggestedAction(vo.getSuggestedAction())
+                    .createTime(LocalDateTime.now())
+                    .build());
         } catch (Exception e) {
-            log.warn("AI 审核调用失败：{}", e.getMessage());
+            log.warn("AI 审核日志写入失败：{}", e.getMessage());
         }
-        return null;
     }
 }

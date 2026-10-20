@@ -49,6 +49,7 @@ env/
 
 # ========== IDE ==========
 .idea/
+.dide/
 *.iml
 *.iws
 *.ipr

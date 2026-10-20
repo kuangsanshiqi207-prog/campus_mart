@@ -36,7 +36,7 @@ spring:
         config:
           ai-service:
             connect-timeout: 3000
-            read-timeout: 15000
+            read-timeout: 70000
 # ==================== JWT ====================
 campus:
   jwt:

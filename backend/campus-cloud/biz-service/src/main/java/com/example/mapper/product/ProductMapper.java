@@ -64,9 +64,10 @@ public interface ProductMapper {
 
     Long countAdmin(@Param("query") AdminProductQueryDTO query);
 
-    void updateAudit(@Param("id") Long id,
-                     @Param("auditStatus") String auditStatus,
-                     @Param("auditReason") String auditReason);
+    void updateAuditResult(@Param("id") Long id,
+                           @Param("auditStatus") String auditStatus,
+                           @Param("auditReason") String auditReason,
+                           @Param("status") String status);
 
     void forceOffline(@Param("id") Long id);
 }

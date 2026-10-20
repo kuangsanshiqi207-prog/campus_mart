@@ -102,11 +102,6 @@
             <artifactId>message-api</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.example</groupId>
-            <artifactId>message-api</artifactId>
-        </dependency>
-
         <!-- ==================== 测试 ==================== -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

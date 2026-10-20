@@ -6,16 +6,16 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/user': 'http://127.0.0.1:8081',
+      '/user': 'http://127.0.0.1:8080',
       '/admin': {
-        target: 'http://127.0.0.1:8081',
+        target: 'http://127.0.0.1:8080',
         bypass(req) {
           if (req.headers.accept && req.headers.accept.includes('text/html')) {
             return '/index.html'
           }
         }
       },
-      '/uploads': 'http://127.0.0.1:8081'
+      '/uploads': 'http://127.0.0.1:8080'
     }
   }
 })

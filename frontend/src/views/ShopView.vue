@@ -22,6 +22,7 @@ const file = ref(null)
 const statusText = {
   on_sale: '在售',
   offline: '已下架',
+  auditing: '审核中',
   reserved: '已预订',
   sold: '已售出',
   pending: '待审核',
@@ -139,7 +140,7 @@ onMounted(async () => {
             <strong>{{ item.title }}</strong>
             <p class="meta"><span>¥{{ item.price }}</span><span class="pill">{{ statusText[item.status] || item.status }}</span></p>
           </div>
-          <button class="btn ghost" type="button" @click="toggle(item)">{{ item.status === 'offline' ? '上架' : '下架' }}</button>
+          <button v-if="item.status === 'on_sale' || item.status === 'offline'" class="btn ghost" type="button" @click="toggle(item)">{{ item.status === 'offline' ? '上架' : '下架' }}</button>
         </article>
       </section>
       </div>

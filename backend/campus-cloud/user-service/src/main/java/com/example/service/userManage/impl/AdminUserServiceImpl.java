@@ -1,7 +1,7 @@
 package com.example.service.userManage.impl;
 
 import cn.hutool.core.util.IdUtil;
-import com.example.api.ai.AiFeignClient;
+import com.example.api.ai.AiAuditSupport;
 import com.example.api.message.MessageFeignClient;
 import com.example.constant.MessageConstant;
 import com.example.constant.NotificationConstant;
@@ -20,7 +20,6 @@ import com.example.mapper.stats.CreditLogMapper;
 import com.example.mapper.user.UserCertificationMapper;
 import com.example.mapper.user.UserMapper;
 import com.example.result.PageResult;
-import com.example.result.Result;
 import com.example.service.userManage.AdminUserService;
 import com.example.vo.ai.AiAuditVO;
 import com.example.vo.user.CertificationVO;
@@ -48,7 +47,7 @@ public class AdminUserServiceImpl implements AdminUserService {
     private final UserCertificationMapper certificationMapper;
     private final CreditLogMapper creditLogMapper;
     private final MessageFeignClient messageFeignClient;        // ← 改
-    private final AiFeignClient aiFeignClient;
+    private final AiAuditSupport aiAuditSupport;
 
     // ==================== 用户列表 ====================
 
@@ -222,9 +221,9 @@ public class AdminUserServiceImpl implements AdminUserService {
         dto.setAuditType("certification");
 
         Map<String, String> textFields = new HashMap<>();
-        putIfPresent(textFields, "school", cert.getSchool());
-        putIfPresent(textFields, "studentNo", cert.getStudentNo());
-        putIfPresent(textFields, "realName", cert.getRealName());
+        aiAuditSupport.putIfPresent(textFields, "school", cert.getSchool());
+        aiAuditSupport.putIfPresent(textFields, "studentNo", cert.getStudentNo());
+        aiAuditSupport.putIfPresent(textFields, "realName", cert.getRealName());
         dto.setTextFields(textFields);
 
         List<String> imageUrls = new ArrayList<>();
@@ -233,28 +232,10 @@ public class AdminUserServiceImpl implements AdminUserService {
         }
         dto.setImageUrls(imageUrls);
 
-        return callAi(dto);
+        return aiAuditSupport.callAudit(dto);
     }
 
     // ==================== 私有方法 ====================
-
-    private AiAuditVO callAi(AiAuditDTO dto) {
-        try {
-            Result<AiAuditVO> result = aiFeignClient.audit(dto);
-            if (result != null && result.getCode() != null && result.getCode() == 1 && result.getData() != null) {
-                return result.getData();
-            }
-        } catch (Exception e) {
-            log.warn("AI 审核调用失败：{}", e.getMessage());
-        }
-        return null;
-    }
-
-    private void putIfPresent(Map<String, String> map, String key, String value) {
-        if (value != null && !value.isBlank()) {
-            map.put(key, value);
-        }
-    }
 
     private UserVO toUserVO(User user) {
         UserVO vo = new UserVO();

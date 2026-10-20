@@ -284,10 +284,11 @@
         <include refid="AdminQueryCondition"/>
     </select>
 
-    <update id="updateAudit">
+    <update id="updateAuditResult">
         UPDATE product
         SET audit_status = #{auditStatus},
             audit_reason = #{auditReason},
+            status = #{status},
             update_time = NOW()
         WHERE id = #{id} AND deleted = 0
     </update>

@@ -1,6 +1,7 @@
 package com.example.service.shop.impl;
 
 import cn.hutool.core.util.IdUtil;
+import com.example.api.ai.AiAuditSupport;
 import com.example.api.file.FileFeignClient;
 import com.example.api.user.UserFeignClient;
 import com.example.constant.MessageConstant;
@@ -13,6 +14,7 @@ import com.example.dto.product.ProductCreateDTO;
 import com.example.entity.Category;
 import com.example.entity.Product;
 import com.example.entity.ProductImage;
+import com.example.event.FileMarkUsedEvent;
 import com.example.event.ProductAuditEvent;
 import com.example.exception.BaseException;
 import com.example.mapper.product.CategoryMapper;
@@ -32,7 +34,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -52,14 +56,16 @@ public class ShopServiceImpl implements ShopService {
     private final UserFeignClient userFeignClient;              // ← 改
     private final FileFeignClient fileFeignClient;              // ← 改
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final AiAuditSupport aiAuditSupport;
+    private final PlatformTransactionManager transactionManager;
 
     // ==================== 发布商品 ====================
 
     @Override
-    @Transactional
     public Long createProduct(ProductCreateDTO dto) {
         Long userId = BaseContext.getCurrentId();
 
+        // 前置校验（本地读 + 远程归属校验，均不进入事务）
         Category category = categoryMapper.getById(dto.getCategoryId());
         if (category == null) {
             throw new BaseException(MessageConstant.CATEGORY_NOT_FOUND);
@@ -67,53 +73,47 @@ public class ShopServiceImpl implements ShopService {
         if (!UserConstant.CERTIFIED.equals(category.getStatus())) {
             throw new BaseException(MessageConstant.CATEGORY_DISABLED);
         }
+        List<String> imageUrls = resolveImageUrls(dto.getImageFileIds(), userId);
 
-        // 校验图片归属（通过 Feign）
-        List<String> imageUrls = new ArrayList<>();
-        for (Long fileId : dto.getImageFileIds()) {
-            Result<FileVO> fr = fileFeignClient.getFileOwnedByUser(fileId, userId);
-            if (fr == null || fr.getCode() != 1 || fr.getData() == null) {
-                throw new BaseException("无权使用该文件");
-            }
-            imageUrls.add(fr.getData().getUrl());
-        }
+        // 事务内只做本地 DB 写；远程副作用（标记文件、AI 审核）提交后异步执行
+        return new TransactionTemplate(transactionManager).execute(status -> {
+            Long productId = IdUtil.getSnowflakeNextId();
+            Product product = Product.builder()
+                    .id(productId)
+                    .sellerId(userId)
+                    .categoryId(dto.getCategoryId())
+                    .title(dto.getTitle())
+                    .description(dto.getDescription())
+                    .price(dto.getPrice())
+                    .originalPrice(dto.getOriginalPrice())
+                    .quality(dto.getQuality())
+                    .tradeType(dto.getTradeType())
+                    .tradePlace(dto.getTradePlace())
+                    .status(ProductConstant.STATUS_AUDITING)
+                    .auditStatus(ProductConstant.AUDIT_PENDING)
+                    .viewCount(0)
+                    .favoriteCount(0)
+                    .createTime(LocalDateTime.now())
+                    .updateTime(LocalDateTime.now())
+                    .build();
+            productMapper.insert(product);
 
-        Long productId = IdUtil.getSnowflakeNextId();
-        Product product = Product.builder()
-                .id(productId)
-                .sellerId(userId)
-                .categoryId(dto.getCategoryId())
-                .title(dto.getTitle())
-                .description(dto.getDescription())
-                .price(dto.getPrice())
-                .originalPrice(dto.getOriginalPrice())
-                .quality(dto.getQuality())
-                .tradeType(dto.getTradeType())
-                .tradePlace(dto.getTradePlace())
-                .status(ProductConstant.STATUS_OFFLINE)
-                .auditStatus(ProductConstant.AUDIT_PENDING)
-                .viewCount(0)
-                .favoriteCount(0)
-                .createTime(LocalDateTime.now())
-                .updateTime(LocalDateTime.now())
-                .build();
-        productMapper.insert(product);
+            saveProductImages(productId, imageUrls);
 
-        saveProductImages(productId, imageUrls, dto.getImageFileIds());
+            applicationEventPublisher.publishEvent(new FileMarkUsedEvent(dto.getImageFileIds()));
+            publishAuditEvent(product, imageUrls);
 
-        // 事务提交后异步触发 AI 审核
-        publishAuditEvent(product, imageUrls);
-
-        return productId;
+            return productId;
+        });
     }
 
     // ==================== 修改商品 ====================
 
     @Override
-    @Transactional
     public void updateProduct(Long id, ProductCreateDTO dto) {
         Long userId = BaseContext.getCurrentId();
 
+        // 前置校验（本地读 + 远程归属校验，均不进入事务）
         Product existing = productMapper.getById(id);
         if (existing == null) {
             throw new BaseException(MessageConstant.PRODUCT_NOT_FOUND);
@@ -124,43 +124,39 @@ public class ShopServiceImpl implements ShopService {
         if (ProductConstant.STATUS_SOLD.equals(existing.getStatus())) {
             throw new BaseException(MessageConstant.PRODUCT_SOLD_CANNOT_EDIT);
         }
-
         Category category = categoryMapper.getById(dto.getCategoryId());
         if (category == null) {
             throw new BaseException(MessageConstant.CATEGORY_NOT_FOUND);
         }
+        List<String> imageUrls = resolveImageUrls(dto.getImageFileIds(), userId);
 
-        List<String> imageUrls = new ArrayList<>();
-        for (Long fileId : dto.getImageFileIds()) {
-            Result<FileVO> fr = fileFeignClient.getFileOwnedByUser(fileId, userId);
-            if (fr == null || fr.getCode() != 1 || fr.getData() == null) {
-                throw new BaseException("无权使用该文件");
-            }
-            imageUrls.add(fr.getData().getUrl());
-        }
+        // 事务内只做本地 DB 写；远程副作用（标记文件、AI 审核）提交后异步执行
+        new TransactionTemplate(transactionManager).execute(status -> {
+            Product update = Product.builder()
+                    .id(id)
+                    .title(dto.getTitle())
+                    .description(dto.getDescription())
+                    .price(dto.getPrice())
+                    .originalPrice(dto.getOriginalPrice())
+                    .quality(dto.getQuality())
+                    .categoryId(dto.getCategoryId())
+                    .tradeType(dto.getTradeType())
+                    .tradePlace(dto.getTradePlace())
+                    .build();
+            productMapper.update(update);
 
-        Product update = Product.builder()
-                .id(id)
-                .title(dto.getTitle())
-                .description(dto.getDescription())
-                .price(dto.getPrice())
-                .originalPrice(dto.getOriginalPrice())
-                .quality(dto.getQuality())
-                .categoryId(dto.getCategoryId())
-                .tradeType(dto.getTradeType())
-                .tradePlace(dto.getTradePlace())
-                .build();
-        productMapper.update(update);
+            // 重新进入审核（审核中）
+            productMapper.updateAuditStatus(id, ProductConstant.AUDIT_PENDING, null);
+            productMapper.updateStatus(id, ProductConstant.STATUS_AUDITING);
 
-        // 重新进入审核（下架 + 审核中）
-        productMapper.updateAuditStatus(id, ProductConstant.AUDIT_PENDING, null);
-        productMapper.updateStatus(id, ProductConstant.STATUS_OFFLINE);
+            productImageMapper.deleteByProductId(id);
+            saveProductImages(id, imageUrls);
 
-        productImageMapper.deleteByProductId(id);
-        saveProductImages(id, imageUrls, dto.getImageFileIds());
+            applicationEventPublisher.publishEvent(new FileMarkUsedEvent(dto.getImageFileIds()));
+            publishAuditEvent(update, imageUrls);
 
-        // 事务提交后异步触发 AI 审核
-        publishAuditEvent(update, imageUrls);
+            return null;
+        });
     }
 
     // ==================== 删除商品 ====================
@@ -201,6 +197,9 @@ public class ShopServiceImpl implements ShopService {
         }
         if (!product.getSellerId().equals(userId)) {
             throw new BaseException(MessageConstant.PRODUCT_NOT_YOURS);
+        }
+        if (ProductConstant.STATUS_AUDITING.equals(product.getStatus())) {
+            throw new BaseException("商品审核中，无法下架");
         }
         if (ProductConstant.STATUS_OFFLINE.equals(product.getStatus())) {
             throw new BaseException(MessageConstant.PRODUCT_ALREADY_OFFLINE);
@@ -320,25 +319,31 @@ public class ShopServiceImpl implements ShopService {
         dto.setAuditType("product");
 
         Map<String, String> textFields = new HashMap<>();
-        putIfPresent(textFields, "title", product.getTitle());
-        putIfPresent(textFields, "description", product.getDescription());
-        putIfPresent(textFields, "price", product.getPrice() == null ? null : product.getPrice().toPlainString());
-        putIfPresent(textFields, "quality", product.getQuality());
-        putIfPresent(textFields, "tradeType", product.getTradeType());
-        putIfPresent(textFields, "tradePlace", product.getTradePlace());
+        aiAuditSupport.putIfPresent(textFields, "title", product.getTitle());
+        aiAuditSupport.putIfPresent(textFields, "description", product.getDescription());
+        aiAuditSupport.putIfPresent(textFields, "price", product.getPrice() == null ? null : product.getPrice().toPlainString());
+        aiAuditSupport.putIfPresent(textFields, "quality", product.getQuality());
+        aiAuditSupport.putIfPresent(textFields, "tradeType", product.getTradeType());
+        aiAuditSupport.putIfPresent(textFields, "tradePlace", product.getTradePlace());
         dto.setTextFields(textFields);
 
         dto.setImageUrls(imageUrls == null ? List.of() : imageUrls);
         return dto;
     }
 
-    private void putIfPresent(Map<String, String> map, String key, String value) {
-        if (value != null && !value.isBlank()) {
-            map.put(key, value);
+    private List<String> resolveImageUrls(List<Long> fileIds, Long userId) {
+        List<String> imageUrls = new ArrayList<>();
+        for (Long fileId : fileIds) {
+            Result<FileVO> fr = fileFeignClient.getFileOwnedByUser(fileId, userId);
+            if (fr == null || fr.getCode() != 1 || fr.getData() == null) {
+                throw new BaseException("无权使用该文件");
+            }
+            imageUrls.add(fr.getData().getUrl());
         }
+        return imageUrls;
     }
 
-    private void saveProductImages(Long productId, List<String> urls, List<Long> fileIds) {
+    private void saveProductImages(Long productId, List<String> urls) {
         if (urls.isEmpty()) return;
 
         List<ProductImage> images = new ArrayList<>();
@@ -350,8 +355,6 @@ public class ShopServiceImpl implements ShopService {
                     .sort(i)
                     .createTime(LocalDateTime.now())
                     .build());
-            // 通过 Feign 标记文件已使用
-            fileFeignClient.markUsed(fileIds.get(i));
         }
         productImageMapper.batchInsert(images);
     }

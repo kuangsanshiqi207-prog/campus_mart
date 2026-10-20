@@ -11,7 +11,7 @@ public class MyProductQueryDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @Schema(description = "状态筛选 on_sale/reserved/sold/offline")
+    @Schema(description = "状态筛选 on_sale/reserved/sold/offline/auditing")
     private String status;
 
     @Schema(description = "页码", example = "1")
