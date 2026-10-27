@@ -8,7 +8,7 @@ spring:
     active: dev
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/campus_mart?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://127.0.0.1:3306/campus_mart?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true
     username: root
     password: 123456
   data:
@@ -36,7 +36,7 @@ campus:
     storage-type: aliyun-oss
     local:
       base-path: ./uploads
-      base-url: http://localhost:8084/uploads
+      base-url: http://127.0.0.1:8084/uploads
   alioss:
     endpoint: oss-cn-hangzhou.aliyuncs.com
     access-key-id: 你的AccessKeyId

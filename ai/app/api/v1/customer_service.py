@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header
 from sse_starlette.sse import EventSourceResponse
 
 from app.api.deps import get_cs_service
@@ -21,8 +21,11 @@ router = APIRouter(prefix="/customer-service", tags=["AI客服"])
 async def chat(
     request: ChatRequest,
     service: ChatService = Depends(get_cs_service),
+    authorization: str | None = Header(default=None, alias="Authorization"),
 ) -> ApiResponse[ChatReply]:
-    content = await service.achat(request.session_id, request.message, request.history)
+    content = await service.achat(
+        request.session_id, request.message, request.history, token=authorization
+    )
     return ApiResponse.success(ChatReply(session_id=request.session_id, content=content))
 
 
@@ -30,11 +33,12 @@ async def chat(
 async def chat_stream(
     request: ChatRequest,
     service: ChatService = Depends(get_cs_service),
+    authorization: str | None = Header(default=None, alias="Authorization"),
 ) -> EventSourceResponse:
     async def event_gen():
         try:
             async for text in service.astream(
-                request.session_id, request.message, request.history
+                request.session_id, request.message, request.history, token=authorization
             ):
                 yield {"event": "message", "data": text}
             yield {"event": "done", "data": "[DONE]"}

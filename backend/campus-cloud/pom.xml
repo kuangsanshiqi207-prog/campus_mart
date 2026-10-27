@@ -24,10 +24,13 @@
         <module>biz-service</module>
         <module>ai-service</module>
         <module>ai-api</module>
-        <!-- 后面逐步加：
-        <module>file-api</module>
-        <module>file-service</module>
-        -->
+        <module>product-api</module>
+        <module>product-service</module>
+        <module>trade-api</module>
+        <module>trade-service</module>
+        <module>payment-service</module>
+        <module>audit-api</module>
+        <module>audit-service</module>
     </modules>
 
     <properties>
@@ -106,6 +109,24 @@
                 <groupId>org.example</groupId>
                 <artifactId>message-api</artifactId>
                 <version>1.0-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.example</groupId>
+                <artifactId>product-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.example</groupId>
+                <artifactId>trade-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.example</groupId>
+                <artifactId>audit-api</artifactId>
+                <version>${project.version}</version>
             </dependency>
 
             <!-- 管理 hutool -->

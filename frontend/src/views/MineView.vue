@@ -10,8 +10,9 @@ const links = [
   { href: '/orders', icon: 'box', title: '我的订单', text: '买到的和卖出的都在这里跟进' },
   { href: '/shop', icon: 'tag', title: '发布闲置', text: '填好价格和照片，挂到集市' },
   { href: '/favorites', icon: 'heart', title: '我的收藏', text: '先标记，回头再约卖家' },
-  { href: '/chat', icon: 'chat', title: '消息', text: '和同学确认时间和地点' },
-  { href: '/admin', icon: 'shield', title: '管理后台', text: '审核商品、公告和举报' }
+  { href: '/reports', icon: 'report', title: '我的举报', text: '查看举报进度，不满意可申诉' },
+  { href: '/service', icon: 'service', title: 'AI 客服', text: '流程和规则问题，随时问' },
+  { href: '/chat', icon: 'chat', title: '消息', text: '和同学确认时间和地点' }
 ]
 
 function logout() {

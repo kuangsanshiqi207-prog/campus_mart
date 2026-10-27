@@ -1,15 +1,11 @@
 package com.example.service.userManage.impl;
 
 import cn.hutool.core.util.IdUtil;
-import com.example.api.ai.AiAuditSupport;
 import com.example.api.message.MessageFeignClient;
 import com.example.constant.MessageConstant;
 import com.example.constant.NotificationConstant;
-import com.example.constant.UserConstant;
 import com.example.context.BaseContext;
-import com.example.dto.ai.AiAuditDTO;
 import com.example.dto.userManage.AdminUserQueryDTO;
-import com.example.dto.userManage.CertificationAuditDTO;
 import com.example.dto.userManage.CreditAdjustDTO;
 import com.example.dto.userManage.UserStatusDTO;
 import com.example.entity.CreditLog;
@@ -21,7 +17,6 @@ import com.example.mapper.user.UserCertificationMapper;
 import com.example.mapper.user.UserMapper;
 import com.example.result.PageResult;
 import com.example.service.userManage.AdminUserService;
-import com.example.vo.ai.AiAuditVO;
 import com.example.vo.user.CertificationVO;
 import com.example.vo.user.UserVO;
 import com.example.vo.userManage.UserDetailVO;
@@ -32,10 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -46,8 +38,7 @@ public class AdminUserServiceImpl implements AdminUserService {
     private final UserMapper userMapper;
     private final UserCertificationMapper certificationMapper;
     private final CreditLogMapper creditLogMapper;
-    private final MessageFeignClient messageFeignClient;        // ← 改
-    private final AiAuditSupport aiAuditSupport;
+    private final MessageFeignClient messageFeignClient;
 
     // ==================== 用户列表 ====================
 
@@ -168,71 +159,6 @@ public class AdminUserServiceImpl implements AdminUserService {
                 .collect(Collectors.toList());
 
         return new PageResult(total, voList);
-    }
-
-    // ==================== 审核认证 ====================
-
-    @Override
-    @Transactional
-    public void auditCertification(Long id, CertificationAuditDTO dto) {
-        UserCertification cert = certificationMapper.getById(id);
-        if (cert == null) {
-            throw new BaseException(MessageConstant.CERTIFICATION_NOT_FOUND);
-        }
-
-        if (!UserConstant.CERT_STATUS_PENDING.equals(cert.getStatus())) {
-            throw new BaseException("该认证已审核过");
-        }
-
-        if (!UserConstant.CERT_STATUS_APPROVED.equals(dto.getStatus())
-                && !UserConstant.CERT_STATUS_REJECTED.equals(dto.getStatus())) {
-            throw new BaseException("审核结果不合法");
-        }
-
-        certificationMapper.audit(id, dto.getStatus(), dto.getReason(), BaseContext.getCurrentId());
-
-        if (UserConstant.CERT_STATUS_APPROVED.equals(dto.getStatus())) {
-            userMapper.updateCertified(cert.getUserId(), UserConstant.CERTIFIED);
-
-            messageFeignClient.send(cert.getUserId(),
-                    NotificationConstant.TYPE_AUDIT,
-                    NotificationConstant.AUDIT_CERT_APPROVED_TITLE,
-                    NotificationConstant.AUDIT_CERT_APPROVED_CONTENT,
-                    id);
-        } else {
-            messageFeignClient.send(cert.getUserId(),
-                    NotificationConstant.TYPE_AUDIT,
-                    NotificationConstant.AUDIT_CERT_REJECTED_TITLE,
-                    String.format(NotificationConstant.AUDIT_CERT_REJECTED_CONTENT, dto.getReason()),
-                    id);
-        }
-    }
-
-    // ==================== AI 辅助审核认证 ====================
-
-    @Override
-    public AiAuditVO aiAuditCertification(Long id) {
-        UserCertification cert = certificationMapper.getById(id);
-        if (cert == null) {
-            throw new BaseException(MessageConstant.CERTIFICATION_NOT_FOUND);
-        }
-
-        AiAuditDTO dto = new AiAuditDTO();
-        dto.setAuditType("certification");
-
-        Map<String, String> textFields = new HashMap<>();
-        aiAuditSupport.putIfPresent(textFields, "school", cert.getSchool());
-        aiAuditSupport.putIfPresent(textFields, "studentNo", cert.getStudentNo());
-        aiAuditSupport.putIfPresent(textFields, "realName", cert.getRealName());
-        dto.setTextFields(textFields);
-
-        List<String> imageUrls = new ArrayList<>();
-        if (cert.getCardImage() != null && !cert.getCardImage().isBlank()) {
-            imageUrls.add(cert.getCardImage());
-        }
-        dto.setImageUrls(imageUrls);
-
-        return aiAuditSupport.callAudit(dto);
     }
 
     // ==================== 私有方法 ====================

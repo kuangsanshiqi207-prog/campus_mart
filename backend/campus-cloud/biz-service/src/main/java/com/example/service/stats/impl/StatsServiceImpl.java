@@ -1,10 +1,10 @@
 package com.example.service.stats.impl;
 
 import com.example.api.message.MessageFeignClient;
+import com.example.api.product.ProductFeignClient;
 import com.example.api.user.UserFeignClient;
 import com.example.constant.ProductConstant;
 import com.example.context.BaseContext;
-import com.example.mapper.product.ProductMapper;
 import com.example.mapper.stats.StatsMapper;
 import com.example.result.PageResult;
 import com.example.result.Result;
@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 public class StatsServiceImpl implements StatsService {
 
     private final StatsMapper statsMapper;
-    private final ProductMapper productMapper;
+    private final ProductFeignClient productFeignClient;
     private final UserFeignClient userFeignClient;
     private final MessageFeignClient messageFeignClient;
 
@@ -86,7 +86,11 @@ public class StatsServiceImpl implements StatsService {
     @Override
     public UserProductStatsVO getMyProductStats() {
         Long userId = BaseContext.getCurrentId();
-        UserProductStatsVO stats = productMapper.getMyStats(userId);
+        UserProductStatsVO stats = null;
+        Result<UserProductStatsVO> r = productFeignClient.getMyStats(userId);
+        if (r != null && r.getCode() == 1 && r.getData() != null) {
+            stats = r.getData();
+        }
         if (stats == null) {
             stats = UserProductStatsVO.builder()
                     .total(0).onSale(0).reserved(0).sold(0)

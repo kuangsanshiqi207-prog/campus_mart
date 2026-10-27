@@ -11,6 +11,11 @@ const error = ref('')
 const message = ref('')
 const remark = ref('')
 const imageIndex = ref(0)
+const reporting = ref(false)
+const reportReason = ref('信息不实')
+const reportDesc = ref('')
+
+const reportReasons = ['信息不实', '违禁商品', '卖家欺诈', '图片与实物不符', '其他']
 
 const qualityLabel = {
   new: '全新',
@@ -68,6 +73,23 @@ function talk() {
   }, '')
 }
 
+function submitReport() {
+  return run(async () => {
+    await request('/user/reports', {
+      method: 'POST',
+      body: JSON.stringify({
+        targetType: 'product',
+        targetId: product.value.id,
+        reason: reportReason.value,
+        description: reportDesc.value.trim() || undefined,
+        imageFileIds: []
+      })
+    })
+    reporting.value = false
+    reportDesc.value = ''
+  }, '举报已提交，平台会尽快处理')
+}
+
 onMounted(async () => {
   try {
     product.value = await request(`/user/market/products/${route.params.id}`)
@@ -120,6 +142,26 @@ onMounted(async () => {
         <p v-if="error" class="form-error">{{ error }}</p>
       </div>
     </article>
+    <section v-if="reporting" class="report-panel">
+      <form class="panel" @submit.prevent="submitReport">
+        <h2>举报这件商品</h2>
+        <label class="field">
+          <span>举报原因</span>
+          <select v-model="reportReason">
+            <option v-for="r in reportReasons" :key="r" :value="r">{{ r }}</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>详细描述（选填）</span>
+          <textarea v-model="reportDesc" rows="3" placeholder="补充说明问题，帮助平台更快处理" />
+        </label>
+        <p class="form-error">{{ error }}</p>
+        <div class="actions">
+          <button class="btn" type="submit">提交举报</button>
+          <button class="btn ghost" type="button" @click="reporting = false">取消</button>
+        </div>
+      </form>
+    </section>
     <div v-if="product" class="buybar">
       <div>
         <strong>¥{{ product.price }}</strong>
@@ -127,9 +169,18 @@ onMounted(async () => {
       </div>
       <div class="actions">
         <button class="btn ghost" type="button" @click="favorite">{{ product.favorited ? '已收藏' : '收藏' }}</button>
+        <button class="btn ghost" type="button" @click="reporting = !reporting">{{ reporting ? '收起举报' : '举报' }}</button>
         <button class="btn ghost" type="button" @click="talk">私信</button>
         <button class="btn" type="button" @click="order">我想要</button>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.report-panel {
+  width: min(1080px, calc(100% - 64px));
+  margin: -8px auto 100px;
+}
+.report-panel .field textarea { resize: vertical; }
+</style>

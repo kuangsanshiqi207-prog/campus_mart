@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.payment.PaymentMapper">
+
+    <sql id="BaseColumns">
+        id, payment_no, order_id, order_no, buyer_id, seller_id,
+        amount, status, channel, create_time, update_time, paid_time
+    </sql>
+
+    <insert id="insert" parameterType="com.example.entity.Payment">
+        INSERT INTO `payment` (
+            id, payment_no, order_id, order_no, buyer_id, seller_id,
+            amount, status, channel, create_time, update_time
+        ) VALUES (
+            #{id}, #{paymentNo}, #{orderId}, #{orderNo}, #{buyerId}, #{sellerId},
+            #{amount}, #{status}, #{channel}, #{createTime}, #{updateTime}
+        )
+    </insert>
+
+    <select id="getById" resultType="com.example.entity.Payment">
+        SELECT <include refid="BaseColumns"/>
+        FROM `payment`
+        WHERE id = #{id}
+    </select>
+
+    <select id="getByOrderId" resultType="com.example.entity.Payment">
+        SELECT <include refid="BaseColumns"/>
+        FROM `payment`
+        WHERE order_id = #{orderId}
+        ORDER BY create_time DESC
+        LIMIT 1
+    </select>
+
+    <update id="markPaid">
+        UPDATE `payment`
+        SET status = 'paid', paid_time = #{paidTime}, update_time = NOW()
+        WHERE id = #{id} AND status = 'pending'
+    </update>
+
+</mapper>

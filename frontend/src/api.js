@@ -46,7 +46,7 @@ export async function request(path, options = {}) {
     headers['Content-Type'] = 'application/json'
   }
   const token = admin ? getAdminToken() : getToken()
-  if (token) headers.token = token
+  if (token) headers.Authorization = token
   const response = await fetch(path, { ...rest, headers })
   if (response.status === 401) throw new Error('请先登录')
   const result = await response.json()

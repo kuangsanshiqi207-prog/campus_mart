@@ -9,9 +9,8 @@ from __future__ import annotations
 from langchain_chroma import Chroma
 
 from app.config import settings
+from app.services.customer_service.knowledge import COLLECTION_NAME
 from app.services.llm import get_embeddings
-
-_COLLECTION_NAME = "campus_mart_kb"
 
 
 def get_vector_store() -> Chroma | None:
@@ -22,7 +21,7 @@ def get_vector_store() -> Chroma | None:
         return Chroma(
             persist_directory=str(persist_dir),
             embedding_function=get_embeddings(),
-            collection_name=_COLLECTION_NAME,
+            collection_name=COLLECTION_NAME,
         )
     except Exception:
         # 索引损坏或 Embedding 未配置时降级为纯对话

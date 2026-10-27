@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { clearAdminSession, getAdminToken, request, saveAdminSession } from '../api'
+import { clearAdminSession, request } from '../api'
 
 const tabs = [
   { id: 'overview', label: '概览' },
@@ -33,9 +33,6 @@ function label(value) {
   return statusText[value] || value
 }
 const tab = ref('overview')
-const username = ref('管理员')
-const password = ref('123456')
-const authed = ref(!!getAdminToken())
 const error = ref('')
 const overview = ref(null)
 const users = ref([])
@@ -47,37 +44,29 @@ const reports = ref([])
 const categoryName = ref('')
 const notice = ref({ title: '', content: '' })
 
-async function login() {
-  error.value = ''
-  try {
-    const data = await request('/admin/auth/login', {
-      method: 'POST',
-      admin: true,
-      body: JSON.stringify({ username: username.value, password: password.value })
-    })
-    saveAdminSession(data)
-    authed.value = true
-    await load()
-  } catch (err) {
-    error.value = err.message
-  }
-}
-
 function logout() {
   clearAdminSession()
-  authed.value = false
+  location.href = '/login'
+}
+
+async function get(path) {
+  try {
+    return await request(path, { admin: true })
+  } catch (err) {
+    throw new Error(`${err.message}（${path}）`)
+  }
 }
 
 async function load() {
   error.value = ''
   try {
-    overview.value = await request('/admin/stats/overview', { admin: true })
-    users.value = (await request('/admin/users?pageNum=1&pageSize=20', { admin: true })).records || []
-    products.value = (await request('/admin/products?pageNum=1&pageSize=20', { admin: true })).records || []
-    categories.value = await request('/admin/categories', { admin: true })
-    reviews.value = (await request('/admin/reviews?pageNum=1&pageSize=20', { admin: true })).records || []
-    announcements.value = (await request('/admin/announcements?pageNum=1&pageSize=20', { admin: true })).records || []
-    reports.value = (await request('/admin/reports?pageNum=1&pageSize=20', { admin: true })).records || []
+    overview.value = await get('/admin/stats/overview')
+    users.value = (await get('/admin/users?pageNum=1&pageSize=20')).records || []
+    products.value = (await get('/admin/products?pageNum=1&pageSize=20')).records || []
+    categories.value = await get('/admin/categories')
+    reviews.value = (await get('/admin/reviews?pageNum=1&pageSize=20')).records || []
+    announcements.value = (await get('/admin/announcements?pageNum=1&pageSize=20')).records || []
+    reports.value = (await get('/admin/reports?pageNum=1&pageSize=20')).records || []
   } catch (err) {
     error.value = err.message
   }
@@ -93,7 +82,7 @@ async function setUserStatus(user, status) {
 }
 
 async function audit(product, result) {
-  await request(`/admin/products/${product.id}/audit`, {
+  await request(`/admin/audit/products/${product.id}`, {
     method: 'PUT',
     admin: true,
     body: JSON.stringify({ result, reason: result === 'reject' ? '信息不完整' : '' })
@@ -132,33 +121,20 @@ async function handleReport(item, result) {
 }
 
 async function deleteReview(item) {
-  await request(`/admin/reviews/${item.id}`, { method: 'DELETE', admin: true })
+  await request(`/admin/audit/reviews/${item.id}`, { method: 'DELETE', admin: true })
   await load()
 }
 
-onMounted(() => {
-  if (authed.value) load()
-})
+onMounted(load)
 </script>
 
 <template>
   <div class="shell">
     <header class="topbar">
       <a class="brand" href="/admin"><i class="brand-mark">管</i>管理后台</a>
-      <a class="btn ghost" href="/market">回集市</a>
-      <button v-if="authed" class="btn ghost" type="button" @click="logout">退出管理</button>
+      <button class="btn ghost" type="button" @click="logout">退出管理</button>
     </header>
-    <main class="page" v-if="!authed">
-      <form class="panel narrow" @submit.prevent="login">
-        <h2>管理员登录</h2>
-        <p class="hint">管理员账号已经填好，密码是 123456</p>
-        <label class="field"><span>用户名</span><input v-model="username" /></label>
-        <label class="field"><span>密码</span><input v-model="password" type="password" /></label>
-        <p class="form-error">{{ error }}</p>
-        <button class="btn" type="submit">登录</button>
-      </form>
-    </main>
-    <main class="page" v-else>
+    <main class="page">
       <div class="chips">
         <button v-for="item in tabs" :key="item.id" class="chip" :class="{ active: tab === item.id }" type="button" @click="tab = item.id">{{ item.label }}</button>
       </div>

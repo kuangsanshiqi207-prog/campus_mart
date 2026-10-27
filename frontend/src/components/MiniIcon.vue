@@ -95,5 +95,15 @@ defineProps({
       <circle cx="17" cy="16" r="3" />
       <path d="M7 16l4-7h4l2 4M11 9l-2 7h8" />
     </template>
+    <template v-else-if="name === 'service'">
+      <path d="M5 12a7 7 0 0 1 14 0" />
+      <rect x="4" y="12" width="4" height="6" rx="2" />
+      <rect x="16" y="12" width="4" height="6" rx="2" />
+      <path d="M19 18v1a3 3 0 0 1-3 3h-3" />
+    </template>
+    <template v-else-if="name === 'report'">
+      <path d="M6 3v18" />
+      <path d="M6 4h11l-2 4 2 4H6" />
+    </template>
   </svg>
 </template>

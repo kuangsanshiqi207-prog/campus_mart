@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { getAdminToken } from './api'
 import AuthStage from './components/AuthStage.vue'
 import LoginView from './views/LoginView.vue'
 import RegisterView from './views/RegisterView.vue'
@@ -14,6 +15,8 @@ import MapView from './views/MapView.vue'
 import WantView from './views/WantView.vue'
 import HelpView from './views/HelpView.vue'
 import MineView from './views/MineView.vue'
+import AiServiceView from './views/AiServiceView.vue'
+import ReportView from './views/ReportView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -34,12 +37,20 @@ const router = createRouter({
     { path: '/favorites', component: FavoritesView },
     { path: '/orders', component: OrdersView },
     { path: '/chat', component: ChatView },
-    { path: '/admin', component: AdminView },
     { path: '/map', component: MapView },
     { path: '/wants', component: WantView },
     { path: '/help', component: HelpView },
-    { path: '/me', component: MineView }
+    { path: '/service', component: AiServiceView },
+    { path: '/reports', component: ReportView },
+    { path: '/me', component: MineView },
+    { path: '/admin', component: AdminView, meta: { requiresAdmin: true } }
   ]
+})
+
+router.beforeEach((to) => {
+  if (to.meta.requiresAdmin && !getAdminToken()) {
+    return { path: '/login' }
+  }
 })
 
 export default router

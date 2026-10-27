@@ -45,6 +45,7 @@ function search() {
     </form>
     <div class="tools">
       <a href="/favorites"><MiniIcon name="heart" />收藏</a>
+      <a :class="{ current: current('/service') }" href="/service"><MiniIcon name="service" />客服</a>
       <a :class="{ current: current('/chat') }" href="/chat"><MiniIcon name="chat" />消息</a>
       <a v-if="user" class="me" href="/me"><MiniIcon name="user" />我的</a>
       <span v-else class="auth-links"><a href="/login"><MiniIcon name="user" />登录</a>/<a href="/register">注册</a></span>

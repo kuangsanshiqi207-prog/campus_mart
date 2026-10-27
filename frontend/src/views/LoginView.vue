@@ -1,7 +1,7 @@
 <script setup>
 import { nextTick, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { request, saveSession } from '../api'
+import { request, saveAdminSession, saveSession } from '../api'
 
 const REMEMBER_KEY = 'campus-login-name'
 const router = useRouter()
@@ -37,15 +37,21 @@ async function submit() {
     return
   }
   loading.value = true
+  const isAdmin = username.value === 'admin'
   try {
-    const data = await request('/user/auth/login', {
+    const data = await request(isAdmin ? '/admin/auth/login' : '/user/auth/login', {
       method: 'POST',
       body: JSON.stringify({ username: username.value, password: password.value })
     })
     if (remember.value) localStorage.setItem(REMEMBER_KEY, username.value.trim())
     else localStorage.removeItem(REMEMBER_KEY)
-    saveSession(data)
-    router.push('/market')
+    if (isAdmin) {
+      saveAdminSession(data)
+      router.push('/admin')
+    } else {
+      saveSession(data)
+      router.push('/market')
+    }
   } catch (err) {
     error.value = err.message
     await nextTick()

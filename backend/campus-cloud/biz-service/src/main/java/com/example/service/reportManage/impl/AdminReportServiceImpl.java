@@ -2,6 +2,7 @@ package com.example.service.reportManage.impl;
 
 import com.example.api.ai.AiAuditSupport;
 import com.example.api.message.MessageFeignClient;
+import com.example.api.product.ProductFeignClient;
 import com.example.api.user.UserFeignClient;
 import com.example.constant.MessageConstant;
 import com.example.constant.NotificationConstant;
@@ -16,7 +17,6 @@ import com.example.entity.Appeal;
 import com.example.entity.Product;
 import com.example.entity.Report;
 import com.example.exception.BaseException;
-import com.example.mapper.product.ProductMapper;
 import com.example.mapper.report.AppealMapper;
 import com.example.mapper.report.ReportMapper;
 import com.example.result.PageResult;
@@ -44,7 +44,7 @@ public class AdminReportServiceImpl implements AdminReportService {
 
     private final ReportMapper reportMapper;
     private final AppealMapper appealMapper;
-    private final ProductMapper productMapper;
+    private final ProductFeignClient productFeignClient;
     private final UserFeignClient userFeignClient;              // ← 改
     private final MessageFeignClient messageFeignClient;        // ← 改
     private final AiAuditSupport aiAuditSupport;
@@ -196,11 +196,19 @@ public class AdminReportServiceImpl implements AdminReportService {
 
     // ==================== 私有方法 ====================
 
+    private Product getProduct(Long id) {
+        Result<Product> r = productFeignClient.getById(id);
+        if (r == null || r.getCode() != 1 || r.getData() == null) {
+            return null;
+        }
+        return r.getData();
+    }
+
     private void executeAction(Report report, String action, String reason) {
         if (ReportConstant.ACTION_OFFLINE.equals(action)) {
             if ("product".equals(report.getTargetType())) {
-                productMapper.updateStatus(report.getTargetId(), "offline");
-                Product product = productMapper.getById(report.getTargetId());
+                productFeignClient.markOffline(report.getTargetId());
+                Product product = getProduct(report.getTargetId());
                 if (product != null) {
                     messageFeignClient.send(product.getSellerId(),
                             NotificationConstant.TYPE_SYSTEM,
@@ -237,7 +245,7 @@ public class AdminReportServiceImpl implements AdminReportService {
         if ("user".equals(type)) {
             return report.getTargetId();
         } else if ("product".equals(type)) {
-            Product product = productMapper.getById(report.getTargetId());
+            Product product = getProduct(report.getTargetId());
             return product != null ? product.getSellerId() : null;
         }
         return null;

@@ -2,6 +2,8 @@ package com.example.service.report.impl;
 
 import cn.hutool.core.util.IdUtil;
 import com.example.api.file.FileFeignClient;
+import com.example.api.order.OrderFeignClient;
+import com.example.api.product.ProductFeignClient;
 import com.example.api.user.UserFeignClient;
 import com.example.constant.MessageConstant;
 import com.example.constant.ReportConstant;
@@ -13,8 +15,6 @@ import com.example.entity.Order;
 import com.example.entity.Product;
 import com.example.entity.Report;
 import com.example.exception.BaseException;
-import com.example.mapper.order.OrderMapper;
-import com.example.mapper.product.ProductMapper;
 import com.example.mapper.report.AppealMapper;
 import com.example.mapper.report.ReportMapper;
 import com.example.result.PageResult;
@@ -40,8 +40,8 @@ public class ReportServiceImpl implements ReportService {
     private final ReportMapper reportMapper;
     private final AppealMapper appealMapper;
     private final FileFeignClient fileFeignClient;       // ← 改
-    private final ProductMapper productMapper;
-    private final OrderMapper orderMapper;
+    private final ProductFeignClient productFeignClient;
+    private final OrderFeignClient orderFeignClient;
     private final UserFeignClient userFeignClient;       // ← 改
 
     // ==================== 提交举报 ====================
@@ -183,10 +183,26 @@ public class ReportServiceImpl implements ReportService {
 
     // ==================== 私有方法 ====================
 
+    private Product getProduct(Long id) {
+        Result<Product> r = productFeignClient.getById(id);
+        if (r == null || r.getCode() != 1 || r.getData() == null) {
+            return null;
+        }
+        return r.getData();
+    }
+
+    private Order getOrder(Long id) {
+        Result<Order> r = orderFeignClient.getById(id);
+        if (r == null || r.getCode() != 1 || r.getData() == null) {
+            return null;
+        }
+        return r.getData();
+    }
+
     private Long validateTarget(String targetType, Long targetId, Long currentUserId) {
         switch (targetType) {
             case ReportConstant.TARGET_PRODUCT:
-                Product product = productMapper.getById(targetId);
+                Product product = getProduct(targetId);
                 if (product == null) {
                     throw new BaseException(MessageConstant.REPORT_TARGET_NOT_FOUND);
                 }
@@ -201,7 +217,7 @@ public class ReportServiceImpl implements ReportService {
                 return targetId;
 
             case ReportConstant.TARGET_ORDER:
-                Order order = orderMapper.getById(targetId);
+                Order order = getOrder(targetId);
                 if (order == null) {
                     throw new BaseException(MessageConstant.REPORT_TARGET_NOT_FOUND);
                 }

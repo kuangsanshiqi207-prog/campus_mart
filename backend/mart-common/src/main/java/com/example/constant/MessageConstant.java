@@ -73,6 +73,11 @@ public class MessageConstant {
     public static final String ORDER_BUYER_NOT_MATCH = "只有买家可以确认完成";
     public static final String ORDER_SELLER_NOT_MATCH = "只有卖家可以操作";
 
+    // ===== 支付 =====
+    public static final String PAYMENT_NOT_FOUND = "支付单不存在";
+    public static final String PAYMENT_ALREADY_PAID = "该订单已支付";
+    public static final String PAYMENT_ORDER_NOT_ACCEPTED = "订单尚未被卖家接受，无法支付";
+
     // ===== 评价 =====
     public static final String REVIEW_ORDER_NOT_COMPLETED = "订单未完成，不能评价";
     public static final String REVIEW_ALREADY_EXISTS = "您已评价过该订单";

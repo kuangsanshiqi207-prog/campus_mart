@@ -39,13 +39,43 @@ spring:
         - id: message-service
           uri: lb://message-service
           predicates:
-            - Path=/user/messages/**,/user/announcements/**,/user/chat/**,/ws/**
+            - Path=/user/messages/**,/user/announcements/**,/admin/announcements/**,/user/chat/**,/ws/**
 
-        # ============ 4. biz-service（商品 + 订单 + 评价 + 举报 + 统计，兜底）============
+        # ============ 4. product-service（商品 + 评价 + 类目）============
+        - id: product-service
+          uri: lb://product-service
+          predicates:
+            - Path=/user/market/**,/user/shop/**,/user/reviews/**,/admin/categories/**,/admin/products/**,/admin/reviews/**
+
+        # ============ 5. audit-service（内容审核）============
+        - id: audit-service
+          uri: lb://audit-service
+          predicates:
+            - Path=/admin/audit/**
+
+        # ============ 6. trade-service（订单）============
+        - id: trade-service
+          uri: lb://trade-service
+          predicates:
+            - Path=/user/orders/**
+
+        # ============ 7. payment-service（支付）============
+        - id: payment-service
+          uri: lb://payment-service
+          predicates:
+            - Path=/user/payments/**
+
+        # ============ 8. biz-service（举报 + 统计）============
         - id: biz-service
           uri: lb://biz-service
           predicates:
-            - Path=/**
+            - Path=/user/reports/**,/user/stats/**,/admin/reports/**,/admin/appeals/**,/admin/stats/**
+
+        # ============ 9. ai-service（AI 客服，Python FastAPI）============
+        - id: ai-service
+          uri: lb://ai-service
+          predicates:
+            - Path=/api/v1/customer-service/**
 
 # JWT 密钥（必须和 user-service、biz-service 一致）
 campus:

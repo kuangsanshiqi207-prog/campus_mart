@@ -25,6 +25,10 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
       <span>发布</span>
       <small>上架商品</small>
     </a>
+    <a class="dock-btn" href="/service">
+      <span>客服</span>
+      <small>AI 客服</small>
+    </a>
     <a class="dock-btn" href="/chat">
       <span>私信</span>
       <small>联系同学</small>

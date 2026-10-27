@@ -1,9 +1,12 @@
 package com.example.controller;
 
 import com.example.api.user.UserFeignClient;
+import com.example.constant.UserConstant;
 import com.example.entity.CreditLog;
 import com.example.entity.User;
+import com.example.entity.UserCertification;
 import com.example.mapper.stats.CreditLogMapper;
+import com.example.mapper.user.UserCertificationMapper;
 import com.example.mapper.user.UserMapper;
 import com.example.result.PageResult;
 import com.example.result.Result;
@@ -25,6 +28,8 @@ public class UserInternalController implements UserFeignClient {
     private final UserMapper userMapper;
 
     private final CreditLogMapper creditLogMapper;
+
+    private final UserCertificationMapper certificationMapper;
 
     @Override
     public Result<UserVO> getById(Long id) {
@@ -93,5 +98,29 @@ public class UserInternalController implements UserFeignClient {
     public Result<List<Map<String, Object>>> getCreditTrend(Long userId, String startDate) {
         List<Map<String, Object>> rows = creditLogMapper.getCreditTrend(userId, startDate);
         return Result.success(rows);
+    }
+
+    @Override
+    public Result<UserCertification> getCertificationById(Long id) {
+        UserCertification cert = certificationMapper.getById(id);
+        if (cert == null) {
+            return Result.error("认证记录不存在");
+        }
+        return Result.success(cert);
+    }
+
+    @Override
+    public Result<Void> auditCertification(Long id, String status, String reason) {
+        UserCertification cert = certificationMapper.getById(id);
+        if (cert == null) {
+            return Result.error("认证记录不存在");
+        }
+
+        certificationMapper.audit(id, status, reason, null);
+
+        if (UserConstant.CERT_STATUS_APPROVED.equals(status)) {
+            userMapper.updateCertified(cert.getUserId(), UserConstant.CERTIFIED);
+        }
+        return Result.success();
     }
 }

@@ -1,7 +1,6 @@
 package com.example.test;
 
 import com.example.dto.admin.AdminLoginDTO;
-import com.example.dto.userManage.CertificationAuditDTO;
 import com.example.dto.userManage.CreditAdjustDTO;
 import com.example.dto.userManage.UserStatusDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -149,20 +148,5 @@ public class AdminUserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(1))
                 .andExpect(jsonPath("$.data.records").isArray());
-    }
-
-    @Test
-    @DisplayName("认证审核 - 不存在")
-    void testAuditCertificationNotFound() throws Exception {
-        CertificationAuditDTO dto = new CertificationAuditDTO();
-        dto.setStatus("approved");
-
-        mockMvc.perform(put("/admin/certifications/999999")
-                        .header("Authorization", adminToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(0))
-                .andExpect(jsonPath("$.msg").value("认证记录不存在"));
     }
 }

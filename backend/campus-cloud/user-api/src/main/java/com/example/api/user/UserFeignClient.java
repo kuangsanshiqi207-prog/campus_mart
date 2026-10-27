@@ -1,6 +1,7 @@
 package com.example.api.user;
 
 import com.example.entity.User;
+import com.example.entity.UserCertification;
 import com.example.result.PageResult;
 import com.example.result.Result;
 import com.example.vo.user.UserVO;
@@ -40,4 +41,14 @@ public interface UserFeignClient {
     @GetMapping("/creditTrend")
     Result<List<Map<String, Object>>> getCreditTrend(@RequestParam("userId") Long userId,
                                                      @RequestParam("startDate") String startDate);
+
+    /** 按 ID 查认证记录（供 audit-service） */
+    @GetMapping("/getCertificationById/{id}")
+    Result<UserCertification> getCertificationById(@PathVariable("id") Long id);
+
+    /** 应用认证审核结果（供 audit-service 回调） */
+    @PutMapping("/auditCertification/{id}")
+    Result<Void> auditCertification(@PathVariable("id") Long id,
+                                    @RequestParam("status") String status,
+                                    @RequestParam("reason") String reason);
 }

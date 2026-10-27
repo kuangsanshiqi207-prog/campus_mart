@@ -29,6 +29,15 @@ class Settings(BaseSettings):
     chroma_persist_dir: str = "./data/chroma"
     rag_top_k: int = 4
 
+    # 客服工作流（意图分流 / Query 改写 / 置信度兜底 / 数据飞轮）
+    cs_enable_query_rewrite: bool = True
+    cs_confidence_threshold: float = 0.3
+    cs_flywheel_dir: str = "./data/flywheel"
+    cs_rrf_k: int = 60
+
+    # 网关（AI 服务回连 Java 后端查询业务数据）
+    gateway_base_url: str = "http://127.0.0.1:8080"
+
     # 服务
     app_port: int = 8000
     log_level: str = "INFO"
@@ -55,6 +64,10 @@ class Settings(BaseSettings):
     @property
     def chroma_persist_path(self) -> Path:
         return Path(self.chroma_persist_dir)
+
+    @property
+    def cs_flywheel_path(self) -> Path:
+        return Path(self.cs_flywheel_dir)
 
 
 @lru_cache

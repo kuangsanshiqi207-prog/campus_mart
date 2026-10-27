@@ -27,10 +27,6 @@
             <groupId>org.example</groupId>
             <artifactId>mart-pojo</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.example</groupId>
-            <artifactId>ai-api</artifactId>
-        </dependency>
 
         <!-- Spring Boot -->
         <dependency>

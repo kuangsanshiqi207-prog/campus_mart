@@ -26,6 +26,8 @@ public class NotificationConstant {
     public static final String ORDER_REJECTED_CONTENT = "卖家已拒绝您对【%s】的交易申请，原因：%s";
     public static final String ORDER_CANCELLED_CONTENT = "订单【%s】已取消，原因：%s";
     public static final String ORDER_COMPLETED_CONTENT = "订单【%s】已完成，感谢使用飞马市集。";
+    public static final String ORDER_PAID_TITLE = "买家已支付";
+    public static final String ORDER_PAID_CONTENT = "买家已支付订单【%s】，请尽快发货或联系面交。";
     public static final String ORDER_REVIEWED_CONTENT = "您的订单【%s】收到新评价，快去看看对方说了什么吧。";
 
     // ==================== 审核消息 ====================
